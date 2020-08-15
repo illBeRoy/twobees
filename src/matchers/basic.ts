@@ -1,5 +1,4 @@
 import deepEqual from 'fast-deep-equal';
-import { NoValueIsPassed } from '../util';
 
 export const sameAs = <T>(expected: T) => (actual: T) =>
   actual === expected || [
@@ -27,45 +26,44 @@ export const withLength = (length: number) => (actual: string | unknown[]) => {
   return true;
 };
 
-export const withProperty = (key: string, value: any = NoValueIsPassed) => (
-  actual
-) => {
-  if (typeof actual !== 'object' || !actual) {
-    return 'The given value is not an object';
+export const withProperty = (key: string, value?: any) =>
+  function (actual) {
+    if (typeof actual !== 'object' || !actual) {
+      return 'The given value is not an object';
+    }
+
+    if (!(key in actual)) {
+      return `The object does not contain the key "${key}"`;
+    }
+
+    if (typeof value !== 'undefined' && !deepEqual(actual[key], value)) {
+      return [
+        `The object contains a value other than expected at property "${key}"`,
+        value,
+        actual[key],
+      ];
+    }
+
+    return true;
+  };
+
+export const between = (min: number, max: number) => (actual: number) => {
+  const [actualMin, actualMax] = [min, max].sort((a, b) => a - b);
+
+  if (typeof actual !== 'number') {
+    return 'The given value is not a number';
   }
 
-  if (!(key in actual)) {
-    return `The object does not contain the key "${key}"`;
-  }
-
-  if (value !== NoValueIsPassed && !deepEqual(actual[key], value)) {
-    return [
-      `The object contains a value other than expected at property "${key}"`,
-      value,
-      actual[key],
-    ];
+  if (actualMin > actual || actual > actualMax) {
+    return `Expected ${actual} to be in range [${actualMin}, ${actualMax}]`;
   }
 
   return true;
-  //   if (typeof val !== 'object' || key in val) {
-  //     return `expected value to contain propety "${key}"`;
-  //   }
-
-  //   if (value !== undefined && val[key] !== value) {
-  //     return [
-  //       `expected obj["${key}"] to have a different value`,
-  //       value,
-  //       val[key],
-  //     ];
-  //   }
 };
 
-// export const between = (min: number, max: number) => (val: number) =>
-//   (min <= val && val <= max) ||
-//   `expected ${val} to be in range [${min}, ${max}]`;
-
-// export const defined = () => (val) =>
-//   typeof val !== 'undefined' || `expected value to be defined`;
+export const defined = (actual) =>
+  typeof actual !== 'undefined' ||
+  `Expected value to be defined, but it wasn't`;
 
 // export const falsy = () => (val) =>
 //   Boolean(val) === false || ['expected value to be falsy', false, val];

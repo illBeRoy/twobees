@@ -6,7 +6,6 @@ export const aRandomPrimitive = () =>
     Chance().integer(),
     Chance().bool(),
     null,
-    undefined,
   ]);
 
 export const aValueThatIs = <T>(

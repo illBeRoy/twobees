@@ -1,7 +1,15 @@
 import { Chance } from 'chance';
 import { aRandomPrimitive, aRandomArray, aValueThatIs } from '../utils/values';
 import { failingTheMatcher } from '../utils/matchers';
-import { expect, sameAs, equal, withLength, withProperty } from '../../src';
+import {
+  expect,
+  sameAs,
+  equal,
+  withLength,
+  withProperty,
+  defined,
+  between,
+} from '../../src';
 
 describe('basic matchers', () => {
   describe('expect(a).toBe(sameAs(e))', () => {
@@ -214,6 +222,110 @@ describe('basic matchers', () => {
       expect(a).toBe(
         failingTheMatcher(withProperty(key), {
           withMessage: `The given value is not an object`,
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(between(min, max))', () => {
+    it('should pass if min <= a <= max', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().integer({ min, max });
+      expect(a).toBe(between(min, max));
+    });
+
+    it('should pass even if min and max switched places', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().integer({ min, max });
+      expect(a).toBe(between(max, min));
+    });
+
+    it('should fail if a < min', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().integer({ max: min - 1 });
+      expect(a).not.toBe(between(min, max));
+    });
+
+    it('should fail if a > max', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().integer({ min: max + 1 });
+      expect(a).not.toBe(between(min, max));
+    });
+
+    it('should fail a is not a number', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().pickone([
+        Chance().bool(),
+        Chance().string(),
+        {},
+        [],
+        undefined,
+        null,
+      ]);
+      expect(a).not.toBe(between(min, max));
+    });
+
+    it('should fail with correct message for actual value not being in range', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().integer({ max: min - 1 });
+      expect(a).toBe(
+        failingTheMatcher(between(min, max), {
+          withMessage: `Expected ${a} to be in range [${min}, ${max}]`,
+        })
+      );
+    });
+
+    it('should fail with correct message for actual value not being a number', () => {
+      const min = Chance().integer();
+      const max = Chance().integer({ min });
+      const a = Chance().pickone([
+        Chance().bool(),
+        Chance().string(),
+        {},
+        [],
+        undefined,
+        null,
+      ]);
+      expect(a).toBe(
+        failingTheMatcher(between(min, max), {
+          withMessage: `The given value is not a number`,
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(defined)', () => {
+    it('should pass if a is defined', () => {
+      const a = aValueThatIs(aRandomPrimitive, { not: undefined });
+      expect(a).toBe(defined);
+    });
+
+    it('should pass if a is null', () => {
+      const a = null;
+      expect(a).toBe(defined);
+    });
+
+    it('should pass if a is falsy', () => {
+      const a = Chance().pickone([false, '', 0]);
+      expect(a).toBe(defined);
+    });
+
+    it('should fail if a is undefined', () => {
+      const a = undefined;
+      expect(a).not.toBe(defined);
+    });
+
+    it('should fail with the correct error', () => {
+      const a = undefined;
+      expect(a).toBe(
+        failingTheMatcher(defined, {
+          withMessage: `Expected value to be defined, but it wasn't`,
         })
       );
     });
