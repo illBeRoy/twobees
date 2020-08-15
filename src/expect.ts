@@ -33,15 +33,15 @@ export const expect = <TValue>(value: TValue) => {
       }
 
       if (typeof res === 'string') {
-        throw new Error(`Expectation failed: ${res}`);
+        throw new Error(`Expectation failed:\n${indentString(res, 2)}`);
       }
 
       if (res instanceof Array && res.length === 3) {
         const [message, expected, actual] = res;
         throw new Error(
-          `Expectation failed:\n  ${message}\n  ${indentString(
+          `Expectation failed:\n${indentString(message, 2)}\n${indentString(
             diff(expected, actual),
-            2
+            4
           )}`
         );
       }

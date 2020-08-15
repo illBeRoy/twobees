@@ -1,4 +1,5 @@
 import deepEqual from 'fast-deep-equal';
+import { NoValueIsPassed } from '../util';
 
 export const sameAs = <T>(expected: T) => (actual: T) =>
   actual === expected || [
@@ -14,26 +15,50 @@ export const equal = <T>(expected: T) => (actual: T) =>
     actual,
   ];
 
-// export const withLength = (length: number) => (arr: any[]) =>
-//   arr.length === length || [
-//     `expected array to have length of ${length}`,
-//     length,
-//     arr.length,
-//   ];
+export const withLength = (length: number) => (actual: string | unknown[]) => {
+  if (typeof actual !== 'string' && !(actual instanceof Array)) {
+    return 'The given value is not an array nor a string';
+  }
 
-// export const withProperty = (key: string, value?: any) => (val) => {
-//   if (typeof val !== 'object' || key in val) {
-//     return `expected value to contain propety "${key}"`;
-//   }
+  if (actual.length !== length) {
+    return ['The given value had an incorrect length', length, actual.length];
+  }
 
-//   if (value !== undefined && val[key] !== value) {
-//     return [
-//       `expected obj["${key}"] to have a different value`,
-//       value,
-//       val[key],
-//     ];
-//   }
-// };
+  return true;
+};
+
+export const withProperty = (key: string, value: any = NoValueIsPassed) => (
+  actual
+) => {
+  if (typeof actual !== 'object' || !actual) {
+    return 'The given value is not an object';
+  }
+
+  if (!(key in actual)) {
+    return `The object does not contain the key "${key}"`;
+  }
+
+  if (value !== NoValueIsPassed && !deepEqual(actual[key], value)) {
+    return [
+      `The object contains a value other than expected at property "${key}"`,
+      value,
+      actual[key],
+    ];
+  }
+
+  return true;
+  //   if (typeof val !== 'object' || key in val) {
+  //     return `expected value to contain propety "${key}"`;
+  //   }
+
+  //   if (value !== undefined && val[key] !== value) {
+  //     return [
+  //       `expected obj["${key}"] to have a different value`,
+  //       value,
+  //       val[key],
+  //     ];
+  //   }
+};
 
 // export const between = (min: number, max: number) => (val: number) =>
 //   (min <= val && val <= max) ||

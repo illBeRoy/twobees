@@ -61,7 +61,7 @@ describe('the expect function', () => {
       const failedWithDetailedResult = () => [errorMessage, expected, actual];
 
       expect(() => $expect({}).toBe(failedWithDetailedResult)).toThrow(
-        indentString(diff(expected, actual), 2)
+        indentString(diff(expected, actual), 4)
       );
     });
   });
@@ -107,7 +107,7 @@ describe('the expect function', () => {
 
         await expect(
           $expect({}).toBe(failedWithDetailedResult)
-        ).rejects.toThrow(indentString(diff(expected, actual), 2));
+        ).rejects.toThrow(indentString(diff(expected, actual), 4));
       });
     });
 

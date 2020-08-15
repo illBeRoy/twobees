@@ -1440,9 +1440,9 @@ eslint-config-prettier@^6.11.0:
   dependencies:
     get-stdin "^6.0.0"
 
-eslint-config-royso@illberoy/eslint-config:
+eslint-config-typescript-prettier@illberoy/eslint-typescript-prettier:
   version "1.0.0"
-  resolved "https://codeload.github.com/illberoy/eslint-config/tar.gz/7ad9dbd8a9078146d4ea01a84b6c0d995c198e78"
+  resolved "https://codeload.github.com/illberoy/eslint-typescript-prettier/tar.gz/a2b698a87dbb15a2dbe0719ba0d06060947593f9"
   dependencies:
     "@typescript-eslint/eslint-plugin" "^3.6.0"
     "@typescript-eslint/parser" "^3.6.0"

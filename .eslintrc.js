@@ -1,7 +1,6 @@
 module.exports = {
-  extends: 'royso',
+  extends: 'typescript-prettier',
   rules: {
-    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
   },
 };
