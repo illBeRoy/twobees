@@ -1,3 +1,4 @@
+import deepEqual from 'fast-deep-equal';
 import { MatcherFn } from '../../src';
 
 const ValueNotPassed = Symbol();
@@ -37,7 +38,7 @@ export const failingTheMatcher = <T, TMatcher extends MatcherFn<T>>(
 
   if (!errorMessage.includes(withMessage)) {
     return [
-      'Matcher failure did not include the expected error message',
+      'Matcher did fail, but did not include the expected error message',
       withMessage,
       errorMessage,
     ];
@@ -45,18 +46,21 @@ export const failingTheMatcher = <T, TMatcher extends MatcherFn<T>>(
 
   if (
     withExpectedValue !== ValueNotPassed &&
-    withExpectedValue !== expectedValue
+    !deepEqual(withExpectedValue, expectedValue)
   ) {
     return [
-      'The "expected" value that was returned by the matcher is different than expected',
+      'The "expected" value that was returned by the failing matcher is different than expected',
       withExpectedValue,
       expectedValue,
     ];
   }
 
-  if (withActualValue !== ValueNotPassed && withActualValue !== actualValue) {
+  if (
+    withActualValue !== ValueNotPassed &&
+    !deepEqual(withActualValue, actualValue)
+  ) {
     return [
-      'The "actual" value that was returned by the matcher is different than expected',
+      'The "actual" value that was returned by the failing matcher is different than expected',
       withActualValue,
       actual,
     ];
