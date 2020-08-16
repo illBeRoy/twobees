@@ -4,3 +4,5 @@ export class BaseError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
+
+export class ExpectationFailureError extends BaseError {}
