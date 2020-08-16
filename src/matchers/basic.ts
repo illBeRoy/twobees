@@ -248,6 +248,91 @@ export const throwing = (actual: () => any) => {
   }
 };
 
-// throwWith
+export const throwingWith = (
+  expected: Error | (new (...args: any[]) => Error) | RegExp | string
+) => (actual: () => any) => {
+  let error;
+  try {
+    actual();
+    return false;
+  } catch (err) {
+    error = err;
+  }
+
+  if (typeof error === 'string') {
+    if (typeof expected === 'function') {
+      return 'The thrown object was a string, therefore it cannot be an instance of the expected class';
+    }
+
+    if (typeof expected === 'object' && 'message' in expected) {
+      return 'The thrown object was a string, therefore it cannot be matched against the expected error instance';
+    }
+
+    if (typeof expected === 'string') {
+      if (error.includes(expected)) {
+        return true;
+      } else {
+        return [
+          'The thrown string does not contain the expected message',
+          expected,
+          error,
+        ];
+      }
+    }
+
+    if (expected instanceof RegExp) {
+      if (expected.test(error)) {
+        return true;
+      } else {
+        return `The thrown string could not be matched by the expected regex (string: "${error}")`;
+      }
+    }
+
+    return true;
+  }
+
+  if (error && typeof error === 'object') {
+    if (typeof expected === 'function') {
+      if (error instanceof expected) {
+        return true;
+      } else {
+        return `The thrown error is not an instance of ${expected.name}`;
+      }
+    }
+
+    if (typeof expected === 'object' && 'message' in expected) {
+      if (error?.message === expected?.message) {
+        return true;
+      } else {
+        return ['The thrown error is different than expected', expected, error];
+      }
+    }
+
+    if (typeof expected === 'string') {
+      if ((error?.message ?? '').includes(expected)) {
+        return true;
+      } else {
+        return [
+          `The thrown error does not contain the expected message`,
+          expected,
+          error?.message,
+        ];
+      }
+    }
+
+    if (expected instanceof RegExp) {
+      if (expected.test(error?.message ?? '')) {
+        return true;
+      } else {
+        return `The thrown error's message could not be matched by the expected regex (message: "${
+          error?.message ?? ''
+        }")`;
+      }
+    }
+  }
+
+  return 'The thrown value was not an Error instance nor a string';
+};
+
 // reject
 // rejectWith

@@ -1,6 +1,7 @@
 import { Chance } from 'chance';
 import { aRandomPrimitive, aRandomArray, aValueThatIs } from '../utils/values';
 import { failingTheMatcher } from '../utils/matchers';
+import { BaseError } from '../../src/errors';
 import {
   expect,
   sameAs,
@@ -24,6 +25,7 @@ import {
   aSubsetOf,
   matching,
   throwing,
+  throwingWith,
 } from '../../src';
 
 describe('basic matchers', () => {
@@ -1033,6 +1035,234 @@ describe('basic matchers', () => {
       expect(a).toBe(
         failingTheMatcher(throwing, {
           withMessage: `Given value is not a function`,
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(throwingError(e))', () => {
+    it("should pass if e is an Error instance and a throws an error that matches e's message", () => {
+      class SomeErrorClass extends BaseError {}
+      const message = Chance().sentence();
+      const e = new SomeErrorClass(message);
+      const a = () => {
+        throw new SomeErrorClass(message);
+      };
+      expect(a).toBe(throwingWith(e));
+    });
+
+    it('should pass if e is an Error class and a throws an error that is an instance of e', () => {
+      class SomeErrorClass extends BaseError {}
+      const a = () => {
+        throw new SomeErrorClass(Chance().string());
+      };
+      expect(a).toBe(throwingWith(SomeErrorClass));
+    });
+
+    it('should pass if e is a string, and a throws an error with a message that contains e', () => {
+      class SomeErrorClass extends BaseError {}
+      const e = Chance().sentence();
+      const a = () => {
+        throw new SomeErrorClass(
+          `${Chance().string()}${e}${Chance().string()}`
+        );
+      };
+      expect(a).toBe(throwingWith(e));
+    });
+
+    it('should pass if e is a string, and a throws a string that contains e', () => {
+      const e = Chance().sentence();
+      const a = () => {
+        throw `${Chance().string()}${e}${Chance().string()}`;
+      };
+      expect(a).toBe(throwingWith(e));
+    });
+
+    it('should pass if e is a regex, and a throws an error with a message that matches e', () => {
+      class SomeErrorClass extends BaseError {}
+      const e = /abc/;
+      const a = () => {
+        throw new SomeErrorClass('abc');
+      };
+      expect(a).toBe(throwingWith(e));
+    });
+
+    it('should pass if e is a regex, and a throws a string that matches e', () => {
+      const e = /abc/;
+      const a = () => {
+        throw 'abc';
+      };
+      expect(a).toBe(throwingWith(e));
+    });
+
+    it('should fail if e is an Error instance and a throws an error with a different message', () => {
+      class SomeErrorClass extends BaseError {}
+      const message = Chance().sentence();
+      const e = new SomeErrorClass(message);
+      const a = () => {
+        throw new SomeErrorClass(Chance().sentence());
+      };
+      expect(a).not.toBe(throwingWith(e));
+    });
+
+    it('should fail if e is an Error class and a throws an error that is not an instance of e', () => {
+      class SomeErrorClass extends BaseError {}
+      class AnotherErrorClass extends BaseError {}
+      const a = () => {
+        throw new AnotherErrorClass(Chance().string());
+      };
+      expect(a).not.toBe(throwingWith(SomeErrorClass));
+    });
+
+    it('should fail if e is a string, and a throws an error with a message that does not contain e', () => {
+      class SomeErrorClass extends BaseError {}
+      const e = Chance().sentence();
+      const a = () => {
+        throw new SomeErrorClass(`${Chance().string()}`);
+      };
+      expect(a).not.toBe(throwingWith(e));
+    });
+
+    it('should fail if e is a regex, and a throws an error with a message that does not match e', () => {
+      class SomeErrorClass extends BaseError {}
+      const e = /abc/;
+      const a = () => {
+        throw new SomeErrorClass('abd');
+      };
+      expect(a).not.toBe(throwingWith(e));
+    });
+
+    it('should fail if e is a string, and a throws a string that does not contain e', () => {
+      const e = Chance().sentence();
+      const a = () => {
+        throw `${Chance().string()}`;
+      };
+      expect(a).not.toBe(throwingWith(e));
+    });
+
+    it('should fail if e is a regex, and a throws a string that does not match e', () => {
+      const e = /abc/;
+      const a = () => {
+        throw 'abd';
+      };
+      expect(a).not.toBe(throwingWith(e));
+    });
+
+    it('should fail if e is not an error nor a string', () => {
+      const a = () => {
+        const throwable = Chance().pickone([
+          null,
+          undefined,
+          Chance().bool(),
+          Chance().integer,
+        ]);
+        throw throwable;
+      };
+      expect(a).not.toBe(throwingWith(Error));
+    });
+
+    it('should fail with correct error for e being an Error instance and a throwing an error with a different message', () => {
+      class SomeErrorClass extends BaseError {}
+      const message = Chance().sentence();
+      const e = new SomeErrorClass(message);
+      const actualError = new SomeErrorClass(Chance().sentence());
+      const a = () => {
+        throw actualError;
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(e), {
+          withMessage: 'The thrown error is different than expected',
+          withExpectedValue: e,
+          withActualValue: actualError,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being an Error class and a throwing an error that is not an instance of e', () => {
+      class SomeErrorClass extends BaseError {}
+      class AnotherErrorClass extends BaseError {}
+      const a = () => {
+        throw new AnotherErrorClass(Chance().string());
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(SomeErrorClass), {
+          withMessage: 'The thrown error is not an instance of SomeErrorClass',
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a string, and a throwing an error with a message that does not contain e', () => {
+      class SomeErrorClass extends BaseError {}
+      const e = Chance().sentence();
+      const actualMessage = Chance().string();
+      const a = () => {
+        throw new SomeErrorClass(actualMessage);
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(e), {
+          withMessage: `The thrown error does not contain the expected message`,
+          withExpectedValue: e,
+          withActualValue: actualMessage,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a regex, and a throwing an error with a message that does not match e', () => {
+      class SomeErrorClass extends BaseError {}
+      const e = /abc/;
+      const a = () => {
+        throw new SomeErrorClass('abd');
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(e), {
+          withMessage: `The thrown error's message could not be matched by the expected regex (message: "abd")`,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a string, and a throwing a string that does not contain e', () => {
+      const e = Chance().sentence();
+      const actualString = Chance().sentence();
+      const a = () => {
+        throw actualString;
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(e), {
+          withMessage:
+            'The thrown string does not contain the expected message',
+          withExpectedValue: e,
+          withActualValue: actualString,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a regex, and a throwing a string that does not match e', () => {
+      const e = /abc/;
+      const a = () => {
+        throw 'abd';
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(e), {
+          withMessage: `The thrown string could not be matched by the expected regex (string: "abd")`,
+        })
+      );
+    });
+
+    it('should fail with correct error for e not being an error nor a string', () => {
+      class SomeErrorClass extends BaseError {}
+      const a = () => {
+        const throwable = Chance().pickone([
+          null,
+          undefined,
+          Chance().bool(),
+          Chance().integer,
+        ]);
+        throw throwable;
+      };
+      expect(a).toBe(
+        failingTheMatcher(throwingWith(SomeErrorClass), {
+          withMessage:
+            'The thrown value was not an Error instance nor a string',
         })
       );
     });
