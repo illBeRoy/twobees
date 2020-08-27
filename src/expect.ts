@@ -1,5 +1,4 @@
-import diff from 'jest-diff';
-import indentString from 'indent-string';
+import { ExpectationFailureError } from './errors';
 
 export type Expected = any;
 export type Actual = any;
@@ -19,6 +18,10 @@ export type ToBeReturnValue<TMatcherFn extends MatcherFn<any>> = ReturnType<
   ? Promise<void>
   : void;
 
+export type ToBeEitherReturnValue<
+  TMatcherFns extends MatcherFn<any>[]
+> = Promise<any> extends ReturnType<TMatcherFns[number]> ? Promise<void> : void;
+
 export const expect = <TValue>(value: TValue) => {
   const toBe = <TMatcherFn extends MatcherFn<TValue>>(
     matcher: TMatcherFn
@@ -29,21 +32,21 @@ export const expect = <TValue>(value: TValue) => {
       }
 
       if (res === false) {
-        throw new Error('Expectation failed');
+        throw new ExpectationFailureError();
       }
 
       if (typeof res === 'string') {
-        throw new Error(`Expectation failed:\n${indentString(res, 2)}`);
+        throw new ExpectationFailureError({
+          message: res,
+        });
       }
 
       if (res instanceof Array && res.length === 3) {
         const [message, expected, actual] = res;
-        throw new Error(
-          `Expectation failed:\n${indentString(message, 2)}\n${indentString(
-            diff(expected, actual),
-            4
-          )}`
-        );
+        throw new ExpectationFailureError({
+          message,
+          expectedActualPair: [expected, actual],
+        });
       }
 
       throw new Error(
@@ -84,11 +87,56 @@ export const expect = <TValue>(value: TValue) => {
     },
   };
 
-  const isPromise = (val) =>
+  const toBeEither = <TMatcherFns extends MatcherFn<TValue>[]>(
+    ...matchers: TMatcherFns
+  ): ToBeEitherReturnValue<TMatcherFns> => {
+    const asyncMatcherResults: Promise<void>[] = [];
+    let hasAnySyncMatcherPassed = false;
+    for (const matcher of matchers) {
+      try {
+        const res: unknown = toBe(matcher);
+        if (isPromise(res)) {
+          asyncMatcherResults.push(res);
+        } else {
+          hasAnySyncMatcherPassed = true;
+        }
+      } catch (err) {
+        continue;
+      }
+    }
+
+    if (hasAnySyncMatcherPassed) {
+      Promise.all(asyncMatcherResults).catch(() => void 0);
+      return;
+    }
+
+    if (asyncMatcherResults.length > 0) {
+      return Promise.all(
+        asyncMatcherResults.map<Promise<'ok' | 'failed'>>((matcherRes) =>
+          matcherRes.then(() => 'ok' as const).catch(() => 'failed' as const)
+        )
+      ).then((results) => {
+        if (results.some((result) => result === 'ok')) {
+          return;
+        } else {
+          throw new ExpectationFailureError({
+            message: `None of the ${matchers.length} expectations have passed`,
+          });
+        }
+      }) as any;
+    }
+
+    throw new ExpectationFailureError({
+      message: `None of the ${matchers.length} expectations have passed`,
+    });
+  };
+
+  const isPromise = (val): val is Promise<any> =>
     val && typeof val === 'object' && 'then' in val && 'catch' in val;
 
   return {
     toBe,
     not,
+    toBeEither,
   };
 };

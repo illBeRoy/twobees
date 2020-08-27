@@ -193,6 +193,64 @@ describe('the expect function', () => {
     });
   });
 
+  describe('when expecting one of multiple expectations to pass using .either directive', () => {
+    it('should pass (and not throw) if at least one of the expectations have passed', () => {
+      const passingPredicate = () => true;
+      const failingWithBoolPredicate = () => false;
+      const failingWithMessagePredicate = () => `i'm ded`;
+      const failingWithDiffPredicate = () => [`im srsly ded`, true, false];
+      expect(() =>
+        $expect({}).toBeEither(
+          passingPredicate,
+          failingWithBoolPredicate,
+          failingWithMessagePredicate,
+          failingWithDiffPredicate
+        )
+      ).not.toThrow();
+    });
+
+    it('should not pass (and throw) if non of the expectations have passed', () => {
+      const failingWithBoolPredicate = () => false;
+      const failingWithMessagePredicate = () => `i'm ded`;
+      const failingWithDiffPredicate = () => [`im srsly ded`, true, false];
+      expect(() =>
+        $expect({}).toBeEither(
+          failingWithBoolPredicate,
+          failingWithMessagePredicate,
+          failingWithDiffPredicate
+        )
+      ).toThrow('None of the 3 expectations have passed');
+    });
+
+    it('should return a promise if at least one of the predicates is a promise, and resolve if at least one predicate has passed', async () => {
+      const passingPredicate = async () => true;
+      const failingWithBoolPredicate = () => false;
+      const failingWithMessagePredicate = async () => `i'm ded`;
+      const failingWithDiffPredicate = () => [`im srsly ded`, true, false];
+      await expect(
+        $expect({}).toBeEither(
+          passingPredicate,
+          failingWithBoolPredicate,
+          failingWithMessagePredicate,
+          failingWithDiffPredicate
+        )
+      ).resolves.toBeUndefined();
+    });
+
+    it('should return a promise if at least one of the predicates is a promise, and reject if non of the predicates has passed', async () => {
+      const failingWithBoolPredicate = () => false;
+      const failingWithMessagePredicate = async () => `i'm ded`;
+      const failingWithDiffPredicate = () => [`im srsly ded`, true, false];
+      await expect(
+        $expect({}).toBeEither(
+          failingWithBoolPredicate,
+          failingWithMessagePredicate,
+          failingWithDiffPredicate
+        )
+      ).rejects.toThrow('None of the 3 expectations have passed');
+    });
+  });
+
   describe('when the predicate does not return any of the agreed upon types of values', () => {
     it('should throw if the predicate is not async', () => {
       const unacceptableReturnValue = Chance().pickone([
@@ -208,6 +266,46 @@ describe('the expect function', () => {
       expect(() => $expect({}).toBe(checkedWithUnacceptablePredicate)).toThrow(
         `Internal Error: The predicate returned an unknown value: ${unacceptableReturnValue}. Please check its implementation and read the twobees FAQ if needed`
       );
+    });
+  });
+});
+
+describe('composition of matchers - the ability to build matchers on top of other matchers', () => {
+  describe('when using "expect" from within a matcher', () => {
+    it('should pass if all internal matchers have passed', () => {
+      const internalMatcher1 = (actual) => true;
+      const internalMatcher2 = (actual) => true;
+      const compositeMatcher = (actual) => {
+        $expect(actual).toBe(internalMatcher1);
+        $expect(actual).toBe(internalMatcher2);
+        return true;
+      };
+
+      expect(() => $expect({}).toBe(compositeMatcher)).not.toThrow();
+    });
+
+    it('should propagate an assertion error that was thrown from on of the internal expects', () => {
+      const internalMatcher1 = (actual) => true;
+      const internalMatcher2 = (actual) => false;
+      const compositeMatcher = (actual) => {
+        $expect(actual).toBe(internalMatcher1);
+        $expect(actual).toBe(internalMatcher2);
+        return true;
+      };
+      expect(() => $expect({}).toBe(compositeMatcher)).toThrow(
+        'Expectation failed'
+      );
+    });
+
+    it('should handle "either" statements correctly', () => {
+      const internalMatcher1 = (actual) => true;
+      const internalMatcher2 = (actual) => false;
+      const compositeMatcher = (actual) => {
+        $expect(actual).toBeEither(internalMatcher1, internalMatcher2);
+        return true;
+      };
+
+      expect(() => $expect({}).toBe(compositeMatcher)).not.toThrow();
     });
   });
 });
