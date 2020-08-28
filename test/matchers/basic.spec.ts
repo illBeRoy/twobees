@@ -26,6 +26,8 @@ import {
   matching,
   throwing,
   throwingWith,
+  rejected,
+  rejectedWith,
 } from '../../src';
 
 describe('basic matchers', () => {
@@ -1148,15 +1150,15 @@ describe('basic matchers', () => {
       expect(a).not.toBe(throwingWith(e));
     });
 
-    it('should fail if e is not an error nor a string', () => {
+    it('should fail if a is not an error nor a string', () => {
       const a = () => {
-        const throwable = Chance().pickone([
+        const invalidThrowable = Chance().pickone([
           null,
           undefined,
           Chance().bool(),
           Chance().integer,
         ]);
-        throw throwable;
+        throw invalidThrowable;
       };
       expect(a).not.toBe(throwingWith(Error));
     });
@@ -1263,6 +1265,249 @@ describe('basic matchers', () => {
         failingTheMatcher(throwingWith(SomeErrorClass), {
           withMessage:
             'The thrown value was not an Error instance nor a string',
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(rejected)', () => {
+    it('should pass if a is a promise that is rejected', async () => {
+      const a = Promise.reject(new Error('rejecting!'));
+      await expect(a).toBe(rejected);
+    });
+
+    it('should fail if a promise that is fulfilled', async () => {
+      const a = Promise.resolve('ok');
+      await expect(a).not.toBe(rejected);
+    });
+
+    it('should fail if a is not a promise', async () => {
+      const a = aRandomPrimitive();
+      await expect(a).not.toBe(rejected);
+    });
+
+    it('should fail with the correct error for a promise that is not rejecting', async () => {
+      const a = Promise.resolve('ok');
+      await expect(a).toBe(
+        failingTheMatcher(rejected, {
+          withMessage: `Expected promise to reject, but it didn't`,
+        })
+      );
+    });
+
+    it('should fail with the correct error for a not being a promise', async () => {
+      const a = aRandomPrimitive();
+      await expect(a).toBe(
+        failingTheMatcher(rejected, {
+          withMessage: `Given value is not a promise`,
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(rejectedWith(e))', () => {
+    it("should pass if e is an Error instance and a rejects with an error that matches e's message", async () => {
+      class SomeErrorClass extends BaseError {}
+      const message = Chance().sentence();
+      const e = new SomeErrorClass(message);
+      const a = Promise.reject(new SomeErrorClass(message));
+      await expect(a).toBe(rejectedWith(e));
+    });
+
+    it('should pass if e is an Error class and a rejects with an error that is an instance of e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const a = Promise.reject(new SomeErrorClass(Chance().string()));
+      await expect(a).toBe(rejectedWith(SomeErrorClass));
+    });
+
+    it('should pass if e is a string, and a rejects with an error with a message that contains e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const e = Chance().sentence();
+      const a = Promise.reject(
+        new SomeErrorClass(`${Chance().string()}${e}${Chance().string()}`)
+      );
+      await expect(a).toBe(rejectedWith(e));
+    });
+
+    it('should pass if e is a string, and a rejects with a string that contains e', async () => {
+      const e = Chance().sentence();
+      const a = Promise.reject(`${Chance().string()}${e}${Chance().string()}`);
+      await expect(a).toBe(rejectedWith(e));
+    });
+
+    it('should pass if e is a regex, and a rejects with an error with a message that matches e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const e = /abc/;
+      const a = Promise.reject(new SomeErrorClass('abc'));
+      await expect(a).toBe(rejectedWith(e));
+    });
+
+    it('should pass if e is a regex, and a rejects with a string that matches e', async () => {
+      const e = /abc/;
+      const a = Promise.reject('abc');
+      await expect(a).toBe(rejectedWith(e));
+    });
+
+    it('should fail if e is an Error instance and a rejects with an error with a different message', async () => {
+      class SomeErrorClass extends BaseError {}
+      const message = Chance().sentence();
+      const e = new SomeErrorClass(message);
+      const a = Promise.reject(new SomeErrorClass(Chance().sentence()));
+      await expect(a).not.toBe(rejectedWith(e));
+    });
+
+    it('should fail if e is an Error class and a rejects with an error that is not an instance of e', async () => {
+      class SomeErrorClass extends BaseError {}
+      class AnotherErrorClass extends BaseError {}
+      const a = Promise.resolve(new AnotherErrorClass(Chance().string()));
+      await expect(a).not.toBe(rejectedWith(SomeErrorClass));
+    });
+
+    it('should fail if e is a string, and a rejects with an error with a message that does not contain e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const e = Chance().sentence();
+      const a = Promise.reject(new SomeErrorClass(`${Chance().string()}`));
+      await expect(a).not.toBe(rejectedWith(e));
+    });
+
+    it('should fail if e is a regex, and a rejects with an error with a message that does not match e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const e = /abc/;
+      const a = Promise.reject(new SomeErrorClass('abd'));
+      await expect(a).not.toBe(rejectedWith(e));
+    });
+
+    it('should fail if e is a string, and a rejects with a string that does not contain e', async () => {
+      const e = Chance().sentence();
+      const a = Promise.reject(`${Chance().string()}`);
+      await expect(a).not.toBe(rejectedWith(e));
+    });
+
+    it('should fail if e is a regex, and a rejects with a string that does not match e', async () => {
+      const e = /abc/;
+      const a = Promise.reject('abd');
+      await expect(a).not.toBe(rejectedWith(e));
+    });
+
+    it('should fail if a rejects with a value that is not an error nor a string', async () => {
+      const a = Promise.reject(
+        Chance().pickone([null, undefined, Chance().bool(), Chance().integer])
+      );
+      await expect(a).not.toBe(rejectedWith(Error));
+    });
+
+    it('should fail if a resolves', async () => {
+      const a = Promise.resolve();
+      await expect(a).not.toBe(rejectedWith(Error));
+    });
+
+    it('should fail if a is not a promise', async () => {
+      const a = aRandomPrimitive();
+      await expect(a).not.toBe(rejectedWith(Error));
+    });
+
+    it('should fail with correct error for e being an Error instance and a rejecting with an error with a different message', async () => {
+      class SomeErrorClass extends BaseError {}
+      const message = Chance().sentence();
+      const e = new SomeErrorClass(message);
+      const actualError = new SomeErrorClass(Chance().sentence());
+      const a = Promise.reject(actualError);
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(e), {
+          withMessage: 'The thrown error is different than expected',
+          withExpectedValue: e,
+          withActualValue: actualError,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being an Error class and a rejecting with an error that is not an instance of e', async () => {
+      class SomeErrorClass extends BaseError {}
+      class AnotherErrorClass extends BaseError {}
+      const a = Promise.reject(new AnotherErrorClass(Chance().string()));
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(SomeErrorClass), {
+          withMessage: 'The thrown error is not an instance of SomeErrorClass',
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a string, and a rejecting with an error with a message that does not contain e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const e = Chance().sentence();
+      const actualMessage = Chance().string();
+      const a = Promise.reject(new SomeErrorClass(actualMessage));
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(e), {
+          withMessage: `The thrown error does not contain the expected message`,
+          withExpectedValue: e,
+          withActualValue: actualMessage,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a regex, and a rejecting with an error with a message that does not match e', async () => {
+      class SomeErrorClass extends BaseError {}
+      const e = /abc/;
+      const a = Promise.reject(new SomeErrorClass('abd'));
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(e), {
+          withMessage: `The thrown error's message could not be matched by the expected regex (message: "abd")`,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a string, and a rejecting with a string that does not contain e', async () => {
+      const e = Chance().sentence();
+      const actualString = Chance().sentence();
+      const a = Promise.reject(actualString);
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(e), {
+          withMessage:
+            'The thrown string does not contain the expected message',
+          withExpectedValue: e,
+          withActualValue: actualString,
+        })
+      );
+    });
+
+    it('should fail with correct error for e being a regex, and a rejecting with a string that does not match e', async () => {
+      const e = /abc/;
+      const a = Promise.reject('abd');
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(e), {
+          withMessage: `The thrown string could not be matched by the expected regex (string: "abd")`,
+        })
+      );
+    });
+
+    it('should fail with correct error for a rejecting with a value that is not an error nor a string', async () => {
+      class SomeErrorClass extends BaseError {}
+      const a = Promise.reject(
+        Chance().pickone([null, undefined, Chance().bool(), Chance().integer])
+      );
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(SomeErrorClass), {
+          withMessage:
+            'The thrown value was not an Error instance nor a string',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a promise that is not rejecting', async () => {
+      const a = Promise.resolve('ok');
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(Error), {
+          withMessage: `Expected promise to reject, but it didn't`,
+        })
+      );
+    });
+
+    it('should fail with the correct error for a not being a promise', async () => {
+      const a = aRandomPrimitive();
+      await expect(a).toBe(
+        failingTheMatcher(rejectedWith(Error), {
+          withMessage: `Given value is not a promise`,
         })
       );
     });

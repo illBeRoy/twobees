@@ -1,8 +1,9 @@
 import { ExpectationFailureError } from './errors';
+import { isPromise } from './promise';
 
-export type Expected = any;
-export type Actual = any;
-export type MatcherDetailedResult = [string, Expected, Actual] | any[];
+export type Expected = unknown;
+export type Actual = unknown;
+export type MatcherDetailedResult = [string, Expected, Actual] | unknown[];
 
 export type MatcherFn<T> = (
   value: T
@@ -12,15 +13,17 @@ export type MatcherFn<T> = (
   | MatcherDetailedResult
   | Promise<boolean | string | MatcherDetailedResult>;
 
-export type ToBeReturnValue<TMatcherFn extends MatcherFn<any>> = ReturnType<
+export type ToBeReturnValue<TMatcherFn extends MatcherFn<unknown>> = ReturnType<
   TMatcherFn
-> extends Promise<any>
+> extends Promise<unknown>
   ? Promise<void>
   : void;
 
 export type ToBeEitherReturnValue<
-  TMatcherFns extends MatcherFn<any>[]
-> = Promise<any> extends ReturnType<TMatcherFns[number]> ? Promise<void> : void;
+  TMatcherFns extends MatcherFn<unknown>[]
+> = Promise<unknown> extends ReturnType<TMatcherFns[number]>
+  ? Promise<void>
+  : void;
 
 export const expect = <TValue>(value: TValue) => {
   const toBe = <TMatcherFn extends MatcherFn<TValue>>(
@@ -57,16 +60,17 @@ export const expect = <TValue>(value: TValue) => {
     const resOfMatcher = matcher(value);
 
     if (isPromise(resOfMatcher)) {
+      //@ts-expect-error
       return Promise.resolve()
         .then(() => resOfMatcher)
-        .then((res) => handleResult(res)) as any;
+        .then((res) => handleResult(res));
     } else {
       handleResult(resOfMatcher);
     }
   };
 
   const not = {
-    toBe: <TMatcherFn extends MatcherFn<any>>(
+    toBe: <TMatcherFn extends MatcherFn<unknown>>(
       matcher: TMatcherFn
     ): ToBeReturnValue<TMatcherFn> => {
       const handleResultOfToBe = (result) => {
@@ -78,9 +82,10 @@ export const expect = <TValue>(value: TValue) => {
       const resOfMatcher = matcher(value);
 
       if (isPromise(resOfMatcher)) {
+        //@ts-expect-error
         return Promise.resolve()
           .then(() => resOfMatcher)
-          .then(handleResultOfToBe) as any;
+          .then(handleResultOfToBe);
       } else {
         handleResultOfToBe(resOfMatcher);
       }
@@ -90,7 +95,7 @@ export const expect = <TValue>(value: TValue) => {
   const toBeEither = <TMatcherFns extends MatcherFn<TValue>[]>(
     ...matchers: TMatcherFns
   ): ToBeEitherReturnValue<TMatcherFns> => {
-    const asyncMatcherResults: Promise<void>[] = [];
+    const asyncMatcherResults: Promise<unknown>[] = [];
     let hasAnySyncMatcherPassed = false;
     for (const matcher of matchers) {
       try {
@@ -111,6 +116,7 @@ export const expect = <TValue>(value: TValue) => {
     }
 
     if (asyncMatcherResults.length > 0) {
+      //@ts-expect-error
       return Promise.all(
         asyncMatcherResults.map<Promise<'ok' | 'failed'>>((matcherRes) =>
           matcherRes.then(() => 'ok' as const).catch(() => 'failed' as const)
@@ -123,16 +129,13 @@ export const expect = <TValue>(value: TValue) => {
             message: `None of the ${matchers.length} expectations have passed`,
           });
         }
-      }) as any;
+      });
     }
 
     throw new ExpectationFailureError({
       message: `None of the ${matchers.length} expectations have passed`,
     });
   };
-
-  const isPromise = (val): val is Promise<any> =>
-    val && typeof val === 'object' && 'then' in val && 'catch' in val;
 
   return {
     toBe,

@@ -1,4 +1,5 @@
 import deepEqual from 'fast-deep-equal';
+import { isPromise } from '../promise';
 
 export const sameAs = <T>(expected: T) => (actual: T) =>
   actual === expected || [
@@ -26,7 +27,7 @@ export const withLength = (length: number) => (actual: string | unknown[]) => {
   return true;
 };
 
-export const withProperty = (key: string, value?: any) =>
+export const withProperty = (key: string, value?: unknown) =>
   function (actual) {
     if (typeof actual !== 'object' || !actual) {
       return 'The given value is not an object';
@@ -235,7 +236,7 @@ export const matching = (expected: RegExp | string) => (actual: string) => {
   }
 };
 
-export const throwing = (actual: () => any) => {
+export const throwing = (actual: () => unknown) => {
   if (typeof actual !== 'function') {
     return `Given value is not a function`;
   }
@@ -249,8 +250,8 @@ export const throwing = (actual: () => any) => {
 };
 
 export const throwingWith = (
-  expected: Error | (new (...args: any[]) => Error) | RegExp | string
-) => (actual: () => any) => {
+  expected: Error | (new (...args: unknown[]) => Error) | RegExp | string
+) => (actual: () => unknown) => {
   let error;
   try {
     actual();
@@ -334,5 +335,30 @@ export const throwingWith = (
   return 'The thrown value was not an Error instance nor a string';
 };
 
-// reject
-// rejectWith
+export const rejected = async (actual: Promise<unknown>) => {
+  if (isPromise(actual)) {
+    return actual
+      .then(() => `Expected promise to reject, but it didn't`)
+      .catch(() => true);
+  } else {
+    return `Given value is not a promise`;
+  }
+};
+
+export const rejectedWith = (
+  expected: Error | (new (...args: unknown[]) => Error) | RegExp | string
+) => async (actual: Promise<unknown>) => {
+  if (isPromise(actual)) {
+    return actual
+      .then(() => `Expected promise to reject, but it didn't`)
+      .catch<ReturnType<ReturnType<typeof throwingWith>>>((err) =>
+        throwingWith(expected)(() => {
+          throw err;
+        })
+      );
+  } else {
+    return `Given value is not a promise`;
+  }
+};
+
+// rejectedWith

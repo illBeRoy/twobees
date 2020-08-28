@@ -10,7 +10,7 @@ export class BaseError extends Error {
 
 export interface ExpectationFailureOpts {
   message?: string;
-  expectedActualPair?: [any, any];
+  expectedActualPair?: [unknown, unknown];
 }
 
 export class ExpectationFailureError extends BaseError {
