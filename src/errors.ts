@@ -14,6 +14,10 @@ export interface ExpectationFailureOpts {
 }
 
 export class ExpectationFailureError extends BaseError {
+  public readonly expectationMessage: string;
+  public readonly expected: unknown;
+  public readonly actual: unknown;
+
   constructor({ message, expectedActualPair }: ExpectationFailureOpts = {}) {
     super(
       `Expectation failed` +
@@ -25,5 +29,8 @@ export class ExpectationFailureError extends BaseError {
             )}`
           : '')
     );
+    this.expectationMessage = message;
+    this.expected = expectedActualPair?.[0];
+    this.actual = expectedActualPair?.[1];
   }
 }

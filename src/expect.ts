@@ -3,32 +3,30 @@ import { isPromise } from './promise';
 
 export type Expected = unknown;
 export type Actual = unknown;
-export type MatcherDetailedResult = [string, Expected, Actual] | unknown[];
+export type AssertionDetailedResult = [string, Expected, Actual] | unknown[];
 
-export type MatcherFn<T> = (
+export type AssertionFn<T> = (
   value: T
 ) =>
   | boolean
   | string
-  | MatcherDetailedResult
-  | Promise<boolean | string | MatcherDetailedResult>;
+  | AssertionDetailedResult
+  | Promise<boolean | string | AssertionDetailedResult>;
 
-export type ToBeReturnValue<TMatcherFn extends MatcherFn<unknown>> = ReturnType<
-  TMatcherFn
-> extends Promise<unknown>
-  ? Promise<void>
-  : void;
+export type ToBeReturnValue<
+  TAssertionFn extends AssertionFn<unknown>
+> = ReturnType<TAssertionFn> extends Promise<unknown> ? Promise<void> : void;
 
 export type ToBeEitherReturnValue<
-  TMatcherFns extends MatcherFn<unknown>[]
-> = Promise<unknown> extends ReturnType<TMatcherFns[number]>
+  TAssertionFns extends AssertionFn<unknown>[]
+> = Promise<unknown> extends ReturnType<TAssertionFns[number]>
   ? Promise<void>
   : void;
 
 export const expect = <TValue>(value: TValue) => {
-  const toBe = <TMatcherFn extends MatcherFn<TValue>>(
-    matcher: TMatcherFn
-  ): ToBeReturnValue<TMatcherFn> => {
+  const toBe = <TAssertionFn extends AssertionFn<TValue>>(
+    assertion: TAssertionFn
+  ): ToBeReturnValue<TAssertionFn> => {
     const handleResult = (res) => {
       if (res === true) {
         return;
@@ -57,83 +55,97 @@ export const expect = <TValue>(value: TValue) => {
       );
     };
 
-    const resOfMatcher = matcher(value);
+    const resOfAssertion = assertion(value);
 
-    if (isPromise(resOfMatcher)) {
+    if (isPromise(resOfAssertion)) {
       //@ts-expect-error
       return Promise.resolve()
-        .then(() => resOfMatcher)
+        .then(() => resOfAssertion)
         .then((res) => handleResult(res));
     } else {
-      handleResult(resOfMatcher);
+      handleResult(resOfAssertion);
     }
   };
 
   const not = {
-    toBe: <TMatcherFn extends MatcherFn<unknown>>(
-      matcher: TMatcherFn
-    ): ToBeReturnValue<TMatcherFn> => {
-      const handleResultOfToBe = (result) => {
-        if (result === true) {
-          throw new Error('Expected to fail, but the assertion passed!');
+    toBe: <TAssertionFn extends AssertionFn<unknown>>(
+      assertion: TAssertionFn
+    ): ToBeReturnValue<TAssertionFn> => {
+      const handleError = (err: unknown) => {
+        if (err instanceof ExpectationFailureError) {
+          return;
+        } else {
+          throw err;
         }
       };
 
-      const resOfMatcher = matcher(value);
+      let resOrPromise: unknown;
+      try {
+        resOrPromise = expect(value).toBe(assertion);
+      } catch (err) {
+        handleError(err);
+        return;
+      }
 
-      if (isPromise(resOfMatcher)) {
+      if (isPromise(resOrPromise)) {
         //@ts-expect-error
-        return Promise.resolve()
-          .then(() => resOfMatcher)
-          .then(handleResultOfToBe);
+        return resOrPromise
+          .then(() => {
+            throw new ExpectationFailureError({
+              message: 'Expected to fail, but the assertion passed!',
+            });
+          })
+          .catch(handleError);
       } else {
-        handleResultOfToBe(resOfMatcher);
+        throw new ExpectationFailureError({
+          message: 'Expected to fail, but the assertion passed!',
+        });
       }
     },
   };
 
-  const toBeEither = <TMatcherFns extends MatcherFn<TValue>[]>(
-    ...matchers: TMatcherFns
-  ): ToBeEitherReturnValue<TMatcherFns> => {
-    const asyncMatcherResults: Promise<unknown>[] = [];
-    let hasAnySyncMatcherPassed = false;
-    for (const matcher of matchers) {
+  const toBeEither = <TAssertionFns extends AssertionFn<TValue>[]>(
+    ...assertions: TAssertionFns
+  ): ToBeEitherReturnValue<TAssertionFns> => {
+    const asyncAssertionResults: Promise<unknown>[] = [];
+    let hasAnySyncAssertionPassed = false;
+    for (const assertion of assertions) {
       try {
-        const res: unknown = toBe(matcher);
+        const res: unknown = toBe(assertion);
         if (isPromise(res)) {
-          asyncMatcherResults.push(res);
+          asyncAssertionResults.push(res);
         } else {
-          hasAnySyncMatcherPassed = true;
+          hasAnySyncAssertionPassed = true;
         }
       } catch (err) {
         continue;
       }
     }
 
-    if (hasAnySyncMatcherPassed) {
-      Promise.all(asyncMatcherResults).catch(() => void 0);
+    if (hasAnySyncAssertionPassed) {
+      Promise.all(asyncAssertionResults).catch(() => void 0);
       return;
     }
 
-    if (asyncMatcherResults.length > 0) {
+    if (asyncAssertionResults.length > 0) {
       //@ts-expect-error
       return Promise.all(
-        asyncMatcherResults.map<Promise<'ok' | 'failed'>>((matcherRes) =>
-          matcherRes.then(() => 'ok' as const).catch(() => 'failed' as const)
+        asyncAssertionResults.map<Promise<'ok' | 'failed'>>((assertionRes) =>
+          assertionRes.then(() => 'ok' as const).catch(() => 'failed' as const)
         )
       ).then((results) => {
         if (results.some((result) => result === 'ok')) {
           return;
         } else {
           throw new ExpectationFailureError({
-            message: `None of the ${matchers.length} expectations have passed`,
+            message: `None of the ${assertions.length} expectations have passed`,
           });
         }
       });
     }
 
     throw new ExpectationFailureError({
-      message: `None of the ${matchers.length} expectations have passed`,
+      message: `None of the ${assertions.length} expectations have passed`,
     });
   };
 

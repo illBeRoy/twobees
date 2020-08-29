@@ -1,2 +1,3 @@
 export * from './expect';
-export * from './matchers/basic';
+export { ExpectationFailureError } from './errors';
+export * from './assertions/basic';

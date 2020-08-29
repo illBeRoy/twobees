@@ -1,9 +1,9 @@
 import { Chance } from 'chance';
 import { aRandomPrimitive, aRandomArray, aValueThatIs } from '../utils/values';
-import { failingTheMatcher } from '../utils/matchers';
+import { failingTheAssertion } from '../utils/assertions';
 import { BaseError } from '../../src/errors';
+import { expect } from '../../src';
 import {
-  expect,
   sameAs,
   equal,
   withLength,
@@ -28,9 +28,9 @@ import {
   throwingWith,
   rejected,
   rejectedWith,
-} from '../../src';
+} from '../../src/assertions/basic';
 
-describe('basic matchers', () => {
+describe('basic assertions', () => {
   describe('expect(a).toBe(sameAs(e))', () => {
     it('should pass if a === e', () => {
       const val = aRandomPrimitive();
@@ -53,7 +53,7 @@ describe('basic matchers', () => {
       const a = aRandomPrimitive();
       const e = aValueThatIs(aRandomPrimitive, { not: a });
       expect(a).toBe(
-        failingTheMatcher(sameAs(e), {
+        failingTheAssertion(sameAs(e), {
           withMessage:
             'Expected values to be strictly equal (===), but they were not',
           withActualValue: a,
@@ -91,7 +91,7 @@ describe('basic matchers', () => {
       const a = aRandomPrimitive();
       const e = aValueThatIs(aRandomPrimitive, { not: a });
       expect(a).toBe(
-        failingTheMatcher(equal(e), {
+        failingTheAssertion(equal(e), {
           withMessage: 'Expected values to be deeply equal, but they were not',
           withExpectedValue: e,
           withActualValue: a,
@@ -135,7 +135,7 @@ describe('basic matchers', () => {
       const e = Chance().integer({ min: 0, max: 100 });
       const a = aRandomArray({ length: e + 1 });
       expect(a).toBe(
-        failingTheMatcher(withLength(e), {
+        failingTheAssertion(withLength(e), {
           withMessage: 'The given value had an incorrect length',
           withActualValue: a.length,
           withExpectedValue: e,
@@ -147,7 +147,7 @@ describe('basic matchers', () => {
       const e = Chance().integer({ min: 0, max: 100 });
       const a = Chance().pickone([null, undefined, 78, true, {}]);
       expect(a).toBe(
-        failingTheMatcher(withLength(e), {
+        failingTheAssertion(withLength(e), {
           withMessage: 'The given value is not an array nor a string',
         })
       );
@@ -205,7 +205,7 @@ describe('basic matchers', () => {
       const key = Chance().string();
       const a = { [Chance().string()]: Chance().string() };
       expect(a).toBe(
-        failingTheMatcher(withProperty(key), {
+        failingTheAssertion(withProperty(key), {
           withMessage: `The object does not contain the key "${key}"`,
         })
       );
@@ -216,7 +216,7 @@ describe('basic matchers', () => {
       const value = aRandomPrimitive();
       const a = { [Chance().string()]: Chance().string() };
       expect(a).toBe(
-        failingTheMatcher(withProperty(key, value), {
+        failingTheAssertion(withProperty(key, value), {
           withMessage: `The object does not contain the key "${key}"`,
         })
       );
@@ -227,7 +227,7 @@ describe('basic matchers', () => {
       const value = aRandomPrimitive();
       const a = { [key]: aValueThatIs(aRandomPrimitive, { not: value }) };
       expect(a).toBe(
-        failingTheMatcher(withProperty(key, value), {
+        failingTheAssertion(withProperty(key, value), {
           withMessage: `The object contains a value other than expected at property "${key}"`,
           withExpectedValue: value,
           withActualValue: a[key],
@@ -239,7 +239,7 @@ describe('basic matchers', () => {
       const key = Chance().string();
       const a = aRandomPrimitive();
       expect(a).toBe(
-        failingTheMatcher(withProperty(key), {
+        failingTheAssertion(withProperty(key), {
           withMessage: `The given value is not an object`,
         })
       );
@@ -294,7 +294,7 @@ describe('basic matchers', () => {
       const max = Chance().integer({ min });
       const a = Chance().integer({ max: min - 1 });
       expect(a).toBe(
-        failingTheMatcher(between(min, max), {
+        failingTheAssertion(between(min, max), {
           withMessage: `Expected ${a} to be in range [${min}, ${max}]`,
         })
       );
@@ -312,7 +312,7 @@ describe('basic matchers', () => {
         null,
       ]);
       expect(a).toBe(
-        failingTheMatcher(between(min, max), {
+        failingTheAssertion(between(min, max), {
           withMessage: `The given value is not a number`,
         })
       );
@@ -343,7 +343,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error', () => {
       const a = undefined;
       expect(a).toBe(
-        failingTheMatcher(defined, {
+        failingTheAssertion(defined, {
           withMessage: `Expected value to be defined, but it wasn't`,
         })
       );
@@ -401,7 +401,7 @@ describe('basic matchers', () => {
         [],
       ]);
       expect(a).toBe(
-        failingTheMatcher(falsy, {
+        failingTheAssertion(falsy, {
           withMessage: `Expected value to be falsy, but instead it was ${a}`,
         })
       );
@@ -454,7 +454,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error', () => {
       const a = Chance().pickone([false, 0, '', null, undefined, NaN]);
       expect(a).toBe(
-        failingTheMatcher(truthy, {
+        failingTheAssertion(truthy, {
           withMessage: `Expected value to be truthy, but instead it was ${a}`,
         })
       );
@@ -490,7 +490,7 @@ describe('basic matchers', () => {
       const e = Chance().integer();
       const a = Chance().integer({ max: e });
       expect(a).toBe(
-        failingTheMatcher(greaterThan(e), {
+        failingTheAssertion(greaterThan(e), {
           withMessage: `Expected ${a} to be greater than ${e}`,
         })
       );
@@ -506,7 +506,7 @@ describe('basic matchers', () => {
         '123',
       ]);
       expect(a).toBe(
-        failingTheMatcher(greaterThan(e), {
+        failingTheAssertion(greaterThan(e), {
           withMessage: 'The given value is not a number',
         })
       );
@@ -548,7 +548,7 @@ describe('basic matchers', () => {
       const e = Chance().integer();
       const a = Chance().integer({ max: e });
       expect(a).toBe(
-        failingTheMatcher(greaterThanEqual(e), {
+        failingTheAssertion(greaterThanEqual(e), {
           withMessage: `Expected ${a} to be greater than or equal ${e}`,
         })
       );
@@ -564,7 +564,7 @@ describe('basic matchers', () => {
         '123',
       ]);
       expect(a).toBe(
-        failingTheMatcher(greaterThanEqual(e), {
+        failingTheAssertion(greaterThanEqual(e), {
           withMessage: 'The given value is not a number',
         })
       );
@@ -600,7 +600,7 @@ describe('basic matchers', () => {
       const e = Chance().integer();
       const a = Chance().integer({ min: e });
       expect(a).toBe(
-        failingTheMatcher(lessThan(e), {
+        failingTheAssertion(lessThan(e), {
           withMessage: `Expected ${a} to be less than ${e}`,
         })
       );
@@ -616,7 +616,7 @@ describe('basic matchers', () => {
         '123',
       ]);
       expect(a).toBe(
-        failingTheMatcher(lessThan(e), {
+        failingTheAssertion(lessThan(e), {
           withMessage: 'The given value is not a number',
         })
       );
@@ -658,7 +658,7 @@ describe('basic matchers', () => {
       const e = Chance().integer();
       const a = Chance().integer({ min: e });
       expect(a).toBe(
-        failingTheMatcher(lessThanEqual(e), {
+        failingTheAssertion(lessThanEqual(e), {
           withMessage: `Expected ${a} to be less than or equal ${e}`,
         })
       );
@@ -674,7 +674,7 @@ describe('basic matchers', () => {
         '123',
       ]);
       expect(a).toBe(
-        failingTheMatcher(lessThanEqual(e), {
+        failingTheAssertion(lessThanEqual(e), {
           withMessage: 'The given value is not a number',
         })
       );
@@ -698,7 +698,7 @@ describe('basic matchers', () => {
       class E {}
       const a = aRandomPrimitive();
       expect(a).toBe(
-        failingTheMatcher(instanceOf(E), {
+        failingTheAssertion(instanceOf(E), {
           withMessage: `Expected value to be an instance of E, but it wasn't`,
         })
       );
@@ -719,7 +719,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error', () => {
       const a = aValueThatIs(aRandomPrimitive, { not: null });
       expect(a).toBe(
-        failingTheMatcher(aNull, {
+        failingTheAssertion(aNull, {
           withMessage: `Expected value to be null, but it wasn't`,
           withExpectedValue: null,
           withActualValue: a,
@@ -742,7 +742,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error', () => {
       const a = aValueThatIs(aRandomPrimitive, { not: undefined });
       expect(a).toBe(
-        failingTheMatcher(anUndefined, {
+        failingTheAssertion(anUndefined, {
           withMessage: `Expected value to be undefined, but it wasn't`,
           withExpectedValue: undefined,
           withActualValue: a,
@@ -765,7 +765,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error', () => {
       const a = aValueThatIs(aRandomPrimitive, { not: NaN });
       expect(a).toBe(
-        failingTheMatcher(aNaN, {
+        failingTheAssertion(aNaN, {
           withMessage: `Expected value to be NaN, but it wasn't`,
           withActualValue: a,
         })
@@ -808,7 +808,7 @@ describe('basic matchers', () => {
       const a = [{ name: 'roy' }, 23, null];
       const e = [true, 23, { name: 'roy' }, null];
       expect(a).toBe(
-        failingTheMatcher(havingSameElementsAs(e), {
+        failingTheAssertion(havingSameElementsAs(e), {
           withMessage:
             'The given array does not have the exact same elements as expected',
           withExpectedValue: e,
@@ -821,7 +821,7 @@ describe('basic matchers', () => {
       const a = aRandomPrimitive();
       const e = [true, 23, { name: 'roy' }, null];
       expect(a).toBe(
-        failingTheMatcher(havingSameElementsAs(e), {
+        failingTheAssertion(havingSameElementsAs(e), {
           withMessage: 'The given value is not an array',
         })
       );
@@ -857,7 +857,7 @@ describe('basic matchers', () => {
       const a = [{ name: 'roy' }, 23, null];
       const e = [true, 23, { name: 'roy' }, null];
       expect(a).toBe(
-        failingTheMatcher(aSupersetOf(e), {
+        failingTheAssertion(aSupersetOf(e), {
           withMessage:
             'The given array is not a superset of the expected array',
           withExpectedValue: e,
@@ -870,7 +870,7 @@ describe('basic matchers', () => {
       const a = aRandomPrimitive();
       const e = [true, 23, { name: 'roy' }, null];
       expect(a).toBe(
-        failingTheMatcher(aSupersetOf(e), {
+        failingTheAssertion(aSupersetOf(e), {
           withMessage: 'The given value is not an array',
         })
       );
@@ -906,7 +906,7 @@ describe('basic matchers', () => {
       const a = [{ name: 'roy' }, 23, null, true];
       const e = [23, { name: 'roy' }, null];
       expect(a).toBe(
-        failingTheMatcher(aSubsetOf(e), {
+        failingTheAssertion(aSubsetOf(e), {
           withMessage: 'The given array is not a subset of the expected array',
           withExpectedValue: e,
           withActualValue: a,
@@ -918,7 +918,7 @@ describe('basic matchers', () => {
       const a = aRandomPrimitive();
       const e = [true, 23, { name: 'roy' }, null];
       expect(a).toBe(
-        failingTheMatcher(aSubsetOf(e), {
+        failingTheAssertion(aSubsetOf(e), {
           withMessage: 'The given value is not an array',
         })
       );
@@ -967,7 +967,7 @@ describe('basic matchers', () => {
       const e = Chance().string();
       const a = `${Chance().string()}${Chance().string()}`;
       expect(a).toBe(
-        failingTheMatcher(matching(e), {
+        failingTheAssertion(matching(e), {
           withMessage: 'The given value does not contain the expected string',
           withExpectedValue: e,
           withActualValue: a,
@@ -979,7 +979,7 @@ describe('basic matchers', () => {
       const e = /abc/;
       const a = `abd`;
       expect(a).toBe(
-        failingTheMatcher(matching(e), {
+        failingTheAssertion(matching(e), {
           withMessage: 'The given value was not matched by the expected regex',
           withExpectedValue: e,
           withActualValue: a,
@@ -998,7 +998,7 @@ describe('basic matchers', () => {
         [],
       ]);
       expect(a).toBe(
-        failingTheMatcher(matching(e), {
+        failingTheAssertion(matching(e), {
           withMessage: 'The given value is not a string',
         })
       );
@@ -1026,7 +1026,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error for a function that is not throwing', () => {
       const a = () => 'ok';
       expect(a).toBe(
-        failingTheMatcher(throwing, {
+        failingTheAssertion(throwing, {
           withMessage: `Expected function to throw, but it didn't`,
         })
       );
@@ -1035,7 +1035,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error for a not being a function', () => {
       const a = aRandomPrimitive();
       expect(a).toBe(
-        failingTheMatcher(throwing, {
+        failingTheAssertion(throwing, {
           withMessage: `Given value is not a function`,
         })
       );
@@ -1172,7 +1172,7 @@ describe('basic matchers', () => {
         throw actualError;
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(e), {
+        failingTheAssertion(throwingWith(e), {
           withMessage: 'The thrown error is different than expected',
           withExpectedValue: e,
           withActualValue: actualError,
@@ -1187,7 +1187,7 @@ describe('basic matchers', () => {
         throw new AnotherErrorClass(Chance().string());
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(SomeErrorClass), {
+        failingTheAssertion(throwingWith(SomeErrorClass), {
           withMessage: 'The thrown error is not an instance of SomeErrorClass',
         })
       );
@@ -1201,7 +1201,7 @@ describe('basic matchers', () => {
         throw new SomeErrorClass(actualMessage);
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(e), {
+        failingTheAssertion(throwingWith(e), {
           withMessage: `The thrown error does not contain the expected message`,
           withExpectedValue: e,
           withActualValue: actualMessage,
@@ -1216,7 +1216,7 @@ describe('basic matchers', () => {
         throw new SomeErrorClass('abd');
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(e), {
+        failingTheAssertion(throwingWith(e), {
           withMessage: `The thrown error's message could not be matched by the expected regex (message: "abd")`,
         })
       );
@@ -1229,7 +1229,7 @@ describe('basic matchers', () => {
         throw actualString;
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(e), {
+        failingTheAssertion(throwingWith(e), {
           withMessage:
             'The thrown string does not contain the expected message',
           withExpectedValue: e,
@@ -1244,7 +1244,7 @@ describe('basic matchers', () => {
         throw 'abd';
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(e), {
+        failingTheAssertion(throwingWith(e), {
           withMessage: `The thrown string could not be matched by the expected regex (string: "abd")`,
         })
       );
@@ -1262,7 +1262,7 @@ describe('basic matchers', () => {
         throw throwable;
       };
       expect(a).toBe(
-        failingTheMatcher(throwingWith(SomeErrorClass), {
+        failingTheAssertion(throwingWith(SomeErrorClass), {
           withMessage:
             'The thrown value was not an Error instance nor a string',
         })
@@ -1289,7 +1289,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error for a promise that is not rejecting', async () => {
       const a = Promise.resolve('ok');
       await expect(a).toBe(
-        failingTheMatcher(rejected, {
+        failingTheAssertion(rejected, {
           withMessage: `Expected promise to reject, but it didn't`,
         })
       );
@@ -1298,7 +1298,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error for a not being a promise', async () => {
       const a = aRandomPrimitive();
       await expect(a).toBe(
-        failingTheMatcher(rejected, {
+        failingTheAssertion(rejected, {
           withMessage: `Given value is not a promise`,
         })
       );
@@ -1413,7 +1413,7 @@ describe('basic matchers', () => {
       const actualError = new SomeErrorClass(Chance().sentence());
       const a = Promise.reject(actualError);
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(e), {
+        failingTheAssertion(rejectedWith(e), {
           withMessage: 'The thrown error is different than expected',
           withExpectedValue: e,
           withActualValue: actualError,
@@ -1426,7 +1426,7 @@ describe('basic matchers', () => {
       class AnotherErrorClass extends BaseError {}
       const a = Promise.reject(new AnotherErrorClass(Chance().string()));
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(SomeErrorClass), {
+        failingTheAssertion(rejectedWith(SomeErrorClass), {
           withMessage: 'The thrown error is not an instance of SomeErrorClass',
         })
       );
@@ -1438,7 +1438,7 @@ describe('basic matchers', () => {
       const actualMessage = Chance().string();
       const a = Promise.reject(new SomeErrorClass(actualMessage));
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(e), {
+        failingTheAssertion(rejectedWith(e), {
           withMessage: `The thrown error does not contain the expected message`,
           withExpectedValue: e,
           withActualValue: actualMessage,
@@ -1451,7 +1451,7 @@ describe('basic matchers', () => {
       const e = /abc/;
       const a = Promise.reject(new SomeErrorClass('abd'));
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(e), {
+        failingTheAssertion(rejectedWith(e), {
           withMessage: `The thrown error's message could not be matched by the expected regex (message: "abd")`,
         })
       );
@@ -1462,7 +1462,7 @@ describe('basic matchers', () => {
       const actualString = Chance().sentence();
       const a = Promise.reject(actualString);
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(e), {
+        failingTheAssertion(rejectedWith(e), {
           withMessage:
             'The thrown string does not contain the expected message',
           withExpectedValue: e,
@@ -1475,7 +1475,7 @@ describe('basic matchers', () => {
       const e = /abc/;
       const a = Promise.reject('abd');
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(e), {
+        failingTheAssertion(rejectedWith(e), {
           withMessage: `The thrown string could not be matched by the expected regex (string: "abd")`,
         })
       );
@@ -1487,7 +1487,7 @@ describe('basic matchers', () => {
         Chance().pickone([null, undefined, Chance().bool(), Chance().integer])
       );
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(SomeErrorClass), {
+        failingTheAssertion(rejectedWith(SomeErrorClass), {
           withMessage:
             'The thrown value was not an Error instance nor a string',
         })
@@ -1497,7 +1497,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error for a promise that is not rejecting', async () => {
       const a = Promise.resolve('ok');
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(Error), {
+        failingTheAssertion(rejectedWith(Error), {
           withMessage: `Expected promise to reject, but it didn't`,
         })
       );
@@ -1506,7 +1506,7 @@ describe('basic matchers', () => {
     it('should fail with the correct error for a not being a promise', async () => {
       const a = aRandomPrimitive();
       await expect(a).toBe(
-        failingTheMatcher(rejectedWith(Error), {
+        failingTheAssertion(rejectedWith(Error), {
           withMessage: `Given value is not a promise`,
         })
       );

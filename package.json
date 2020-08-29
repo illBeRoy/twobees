@@ -1,15 +1,21 @@
 {
   "name": "twobees",
   "version": "1.0.0",
-  "description": "assertion that stings",
+  "description": "assertion with a buzz",
   "main": "dist/src/index.js",
   "author": "Roy Sommer <roy@sommer.co.il>",
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "tsc",
+    "build": "yarn build:typescript && yarn build:entrypoints",
+    "build:typescript": "tsc",
+    "build:entrypoints": "ts-node scripts/entrypoints.ts",
     "test": "jest"
   },
+  "files": [
+    "dist",
+    "assertions"
+  ],
   "devDependencies": {
     "@types/chance": "^1.1.0",
     "@types/jest": "^26.0.9",
@@ -19,6 +25,7 @@
     "eslint-config-typescript-prettier": "illberoy/eslint-typescript-prettier",
     "jest": "^26.4.0",
     "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
     "typescript": "^3.9.7"
   },
   "dependencies": {

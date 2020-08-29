@@ -1,5 +1,6 @@
 import deepEqual from 'fast-deep-equal';
 import { isPromise } from '../promise';
+import { expect } from '../expect';
 
 export const sameAs = <T>(expected: T) => (actual: T) =>
   actual === expected || [
@@ -351,11 +352,12 @@ export const rejectedWith = (
   if (isPromise(actual)) {
     return actual
       .then(() => `Expected promise to reject, but it didn't`)
-      .catch<ReturnType<ReturnType<typeof throwingWith>>>((err) =>
-        throwingWith(expected)(() => {
+      .catch((err) => {
+        expect(() => {
           throw err;
-        })
-      );
+        }).toBe(throwingWith(expected));
+        return true;
+      });
   } else {
     return `Given value is not a promise`;
   }
