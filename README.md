@@ -22,6 +22,7 @@ assertions with a <i>buzz</i> 🐝
   * [`not.toBe` - negated assertion](#-nottobe----negated-assertion)
   * [`toBeEither` - soft assertion](#-tobeeither----soft-assertion)
   * [Assertions Library](#assertions-library)
+  * [Using With Jest](#using-with-jest)
 - [Hacking](#hacking)
   * [Boolean Predicates](#boolean-predicates)
   * [Meaningful Errors](#meaningful-errors)
@@ -156,7 +157,40 @@ Sometimes you've multiple assertions, and you expect that at least one of them w
 Similarly to how `toBe` and `not.toBe` work, `toBeEither` returns a promise if **at least one** of the assertions is async. Otherwise, it will be completely sync and throw (or pass) immediately.
 
 ### Assertions Library
-**twobees** comes with all standard assertions, as well as some optional ones that match `jest` specifically. You can read about them [here](./docs/ASSERTIONS.md);
+**twobees** comes with all standard assertions from equality to ranges and promises.
+
+As we said before, assertions are simply functions that can be used with the `toBe` method.
+
+You can import them from the `twobees` package:
+
+```js
+import { expect, equal, withLength, resolvedWith } from 'twobees';
+
+expect('a').toBe(equal('a'));
+expect([1, 2, 3]).toBe(withLength(2));
+await expect(Promise.resolve('yes')).toBe(resolvedWith('yes'));
+```
+
+Since there are many different assertions, you can ead all about them [here](./docs/ASSERTIONS.md);
+
+### Using With Jest
+Jest is one of the most popular test runners in the javascript world right now. As a result, it is only natural for us to support it out of the box.
+
+**twobees** comes with a set of jest-specific assertions (mainly revolving jest's mock mechanism).
+Unlike the basic assertions, though, they are not included automatically (as **twobees** should be agnostic to your test runner by default).
+
+If you want to use the jest assertions anyways, you can import them from the following path:
+
+```js
+import { expect } from 'twobees';
+import { called } from 'twobees/assertions/jest';
+
+const fn = jest.fn();
+fn()
+expect(fn).toBe(called);
+```
+
+Review the different jest assertions [here](./docs/ASSERTIONS.md#jest);
 
 ## Hacking
 **twobees**' simple nature makes it **highly extensible**, as you can easily write your own assertions to complement your code. Assertions are basically functions of the following format:

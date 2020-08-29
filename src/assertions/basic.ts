@@ -256,7 +256,7 @@ export const throwingWith = (
   let error;
   try {
     actual();
-    return false;
+    return 'The given value was not a throwing function';
   } catch (err) {
     error = err;
   }
