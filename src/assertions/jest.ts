@@ -104,11 +104,23 @@ export const returning = (actual: jest.Mock) => {
   }
 };
 
-// returningWith
+export const returningWith = (expected: unknown) => (actual: jest.Mock) => {
+  expect(actual).toBe(aJestMock);
+  expect(actual).toBe(returning);
+
+  const hasReturnedWithExpectedValue = actual.mock.results.some(
+    (result) => result.type === 'return' && deepEqual(result.value, expected)
+  );
+  if (hasReturnedWithExpectedValue) {
+    return true;
+  } else {
+    return `The mock has never returned with the expected value`;
+  }
+};
 
 // lastReturningWith
 
-// returningInNthTimeWith
+// nthReturningWith
 
 const areCallsEqual = (call1: unknown[], call2: unknown[]) =>
   call1.length === call2.length &&
