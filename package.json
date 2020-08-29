@@ -11,6 +11,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "yarn build:typescript && yarn build:entrypoints && yarn build:docs",
     "build:typescript": "tsc",
     "build:entrypoints": "ts-node scripts/entrypoints.ts",
@@ -18,7 +19,7 @@
     "test": "jest",
     "posttest": "yarn lint",
     "lint": "eslint .",
-    "prerelease": "yarn build && yarn test",
+    "prerelease": "yarn clean && yarn build && yarn test",
     "release": "release-it"
   },
   "files": [
