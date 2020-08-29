@@ -6,8 +6,18 @@
 assertions with a <i>buzz</i> 🐝
 </p>
 
+```ts
+// take this simple function
+const sameAs = <T>(expected: T) => (actual: T) => actual === expected;
+// and this simple value
+const foo = 5;
+// put them here together
+expect(foo).toBe(sameAs(5));
+// done!
+```
+
 ### Features
-* 🎈 **Simple** - only one expectation method - *toBe*. instead, every boolean function is an assertion - no magic methods!
+* 🎈 **Simple** - only one expectation method - *toBe*. in exchange for all the magic methods, every boolean function is an assertion!
 * 🕹 **Hackable** - easily write your own special assertions for your code! extend and compose existing assertions!
 * 📠 **Type Safe** - we leverage typescript to find type errors before you even hit that run button!
 
