@@ -1321,7 +1321,7 @@ describe('basic assertions', () => {
     });
 
     it('should fail if a is resolved to a value that does not equal or deep equal e', async () => {
-      const e = aRandomPrimitive();
+      const e = 'hello';
       const a = Promise.resolve(aRandomPrimitive());
       await expect(a).not.toBe(resolvedWith(e));
     });
@@ -1339,7 +1339,7 @@ describe('basic assertions', () => {
     });
 
     it('should fail with the correct error for a being resolved to a value that does not equal or deep equal e', async () => {
-      const e = aRandomPrimitive();
+      const e = 'yoyo';
       const r = aRandomPrimitive();
       const a = Promise.resolve(r);
       await expect(a).toBe(

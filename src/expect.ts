@@ -88,14 +88,22 @@ export const expect = <TValue>(value: TValue) => {
       }
 
       if (isPromise(resOrPromise)) {
+        let wasHandled = false;
         //@ts-expect-error
         return resOrPromise
           .then(() => {
+            wasHandled = true;
             throw new ExpectationFailureError({
               message: 'Expected to fail, but the assertion passed!',
             });
           })
-          .catch(handleError);
+          .catch((err) => {
+            if (!wasHandled) {
+              handleError(err);
+            } else {
+              throw err;
+            }
+          });
       } else {
         throw new ExpectationFailureError({
           message: 'Expected to fail, but the assertion passed!',

@@ -394,5 +394,3 @@ export const rejectedWith = (
     return `Given value is not a promise`;
   }
 };
-
-// rejectedWith

@@ -7,7 +7,7 @@ assertions with a <i>buzz</i> 🐝
 </p>
 
 ### Features
-* 🎈 **Simple** - one *toBe* to rule them all! every boolean function is an assertion - no magic methods!
+* 🎈 **Simple** - only one expectation method - *toBe*. instead, every boolean function is an assertion - no magic methods!
 * 🕹 **Hackable** - easily write your own special assertions for your code! extend and compose existing assertions!
 * 📠 **Type Safe** - we leverage typescript to find type errors before you even hit that run button!
 
@@ -29,8 +29,6 @@ assertions with a <i>buzz</i> 🐝
   * [Diffs](#diffs)
   * [Async Assertions](#async-assertions-1)
   * [Composition](#composition)
-    + [AND Composition](#and-composition)
-    + [OR Composition](#or-composition)
 - [Contribution](#contribution)
 
 ## Introduction
@@ -376,3 +374,4 @@ The above assertion checks that one of two conditions is met (actual < min, or a
 
 ## Contribution
 **twobees** is still at its early stages. Issues and Pull Requests are welcome!
+For more detailed explanation, please see our [contribution guidelines document](docs/CONTRIBUTION.md).

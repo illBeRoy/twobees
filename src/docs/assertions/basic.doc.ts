@@ -8,7 +8,7 @@ const docs: DocOfFile<typeof basicAssertionFile> = {
     them from there:
 
     \`\`\`js
-      import { sameAs, equal, ... } from 'twobees';
+    import { sameAs, equal, ... } from 'twobees';
     \`\`\`
   `,
   content: {
