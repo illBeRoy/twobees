@@ -336,6 +336,38 @@ export const throwingWith = (
   return 'The thrown value was not an Error instance nor a string';
 };
 
+export const resolved = async (actual: Promise<unknown>) => {
+  if (isPromise(actual)) {
+    return actual
+      .then(() => true)
+      .catch(() => 'Expected promise to resolve, but it rejected');
+  } else {
+    return `Given value is not a promise`;
+  }
+};
+
+export const resolvedWith = <T>(expected: T) => async (actual: Promise<T>) => {
+  if (!isPromise(actual)) {
+    return `Given value is not a promise`;
+  }
+
+  let resolvedValue: T;
+  try {
+    resolvedValue = await actual;
+  } catch (err) {
+    return 'Expected promise to resolve, but it rejected';
+  }
+  if (deepEqual(expected, resolvedValue)) {
+    return true;
+  } else {
+    return [
+      'Promise resolved to a different value than expected',
+      expected,
+      resolvedValue,
+    ];
+  }
+};
+
 export const rejected = async (actual: Promise<unknown>) => {
   if (isPromise(actual)) {
     return actual

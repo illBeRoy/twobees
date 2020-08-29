@@ -28,6 +28,8 @@ import {
   throwingWith,
   rejected,
   rejectedWith,
+  resolved,
+  resolvedWith,
 } from '../../src/assertions/basic';
 
 describe('basic assertions', () => {
@@ -1265,6 +1267,106 @@ describe('basic assertions', () => {
         failingTheAssertion(throwingWith(SomeErrorClass), {
           withMessage:
             'The thrown value was not an Error instance nor a string',
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(resolved)', () => {
+    it('should pass if a is a promise that resolves', async () => {
+      const a = Promise.resolve('ok');
+      await expect(a).toBe(resolved);
+    });
+
+    it('should fail if a is a promise that rejects', async () => {
+      const a = Promise.reject('oh noes');
+      await expect(a).not.toBe(resolved);
+    });
+
+    it('should fail if a is not a promise', async () => {
+      const a = aRandomPrimitive();
+      await expect(a).not.toBe(resolved);
+    });
+
+    it('should fail with the correct error for a being a promise that rejects', async () => {
+      const a = Promise.reject('oh noes');
+      await expect(a).toBe(
+        failingTheAssertion(resolved, {
+          withMessage: 'Expected promise to resolve, but it rejected',
+        })
+      );
+    });
+
+    it('should fail with the correct message for a not being a promise', async () => {
+      const a = aRandomPrimitive();
+      await expect(a).toBe(
+        failingTheAssertion(resolved, {
+          withMessage: `Given value is not a promise`,
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(resolvedWith(e))', () => {
+    it('should pass if a is resolved to a value that equals e', async () => {
+      const e = aRandomPrimitive();
+      const a = Promise.resolve(e);
+      await expect(a).toBe(resolvedWith(e));
+    });
+
+    it('should pass if a is resolved to a value that deep equals e', async () => {
+      const e = { [Chance().word()]: aRandomPrimitive() };
+      const a = Promise.resolve({ ...e });
+      await expect(a).toBe(resolvedWith(e));
+    });
+
+    it('should fail if a is resolved to a value that does not equal or deep equal e', async () => {
+      const e = aRandomPrimitive();
+      const a = Promise.resolve(aRandomPrimitive());
+      await expect(a).not.toBe(resolvedWith(e));
+    });
+
+    it('should fail if a is rejected', async () => {
+      const e = aRandomPrimitive();
+      const a = Promise.reject('dang');
+      await expect(a).not.toBe(resolvedWith(e));
+    });
+
+    it('should fail if a is not a promise', async () => {
+      const e = aRandomPrimitive();
+      const a = aRandomPrimitive();
+      await expect(e).not.toBe(resolvedWith(e));
+    });
+
+    it('should fail with the correct error for a being resolved to a value that does not equal or deep equal e', async () => {
+      const e = aRandomPrimitive();
+      const r = aRandomPrimitive();
+      const a = Promise.resolve(r);
+      await expect(a).toBe(
+        failingTheAssertion(resolvedWith(e), {
+          withMessage: 'Promise resolved to a different value than expected',
+          withExpectedValue: e,
+          withActualValue: r,
+        })
+      );
+    });
+
+    it('should fail with the correct error for a being rejected', async () => {
+      const e = aRandomPrimitive();
+      const a = Promise.reject('dang');
+      await expect(a).toBe(
+        failingTheAssertion(resolvedWith(e), {
+          withMessage: 'Expected promise to resolve, but it rejected',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a not being a promise', async () => {
+      const e = aRandomPrimitive();
+      const a = aRandomPrimitive();
+      await expect(e).toBe(
+        failingTheAssertion(resolvedWith(e), {
+          withMessage: `Given value is not a promise`,
         })
       );
     });
