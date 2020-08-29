@@ -1,4 +1,5 @@
 import deepEqual from 'fast-deep-equal';
+import ordinal from 'ordinal';
 import { expect } from '../expect';
 
 export const aJestMock = (actual: unknown) => {
@@ -49,24 +50,41 @@ export const lastCalledWith = <TArgs extends unknown[]>(...args: TArgs) => (
   actual: jest.Mock
 ) => {
   expect(actual).toBe(aJestMock);
+  const callCount = actual.mock.calls.length;
+  expect(actual).toBe(nthCalledWith(callCount, ...args));
+  return true;
+};
+
+export const nthCalledWith = <TArgs extends unknown[]>(
+  n: number,
+  ...args: TArgs
+) => (actual: jest.Mock) => {
+  expect(actual).toBe(aJestMock);
 
   if (actual.mock.calls.length === 0) {
     return 'The mock was never called at all';
   }
 
-  const lastCall = actual.mock.calls[actual.mock.calls.length - 1];
-  if (areCallsEqual(lastCall, args)) {
+  const nthCall = actual.mock.calls[n - 1];
+  if (!nthCall) {
+    return `The mock was never called a ${ordinal(n)} time (calls: ${
+      actual.mock.calls.length
+    })`;
+  }
+
+  if (areCallsEqual(nthCall, args)) {
     return true;
   } else {
+    const isLastCall = n === actual.mock.calls.length;
     return [
-      'The last call of the function did not match expectations',
+      `The ${ordinal(n)}${
+        isLastCall ? ` (and last)` : ''
+      } call of the mock did not match expectations`,
       args,
-      [...lastCall],
+      [...nthCall],
     ];
   }
 };
-
-// nthCalledWith
 
 // returning
 
