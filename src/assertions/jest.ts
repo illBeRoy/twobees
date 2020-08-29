@@ -121,23 +121,45 @@ export const returningWith = (expected: unknown) => (actual: jest.Mock) => {
 export const lastReturningWith = (expected: unknown) => (actual: jest.Mock) => {
   expect(actual).toBe(aJestMock);
   expect(actual).toBe(returning);
-  const lastCall = actual.mock.results[actual.mock.results.length - 1];
-  if (lastCall.type !== 'return') {
-    return 'Expected the last call of the error to return, but it threw instead';
+  const callCount = actual.mock.calls.length;
+  expect(actual).toBe(nthReturningWith(callCount, expected));
+  return true;
+};
+
+export const nthReturningWith = (n: number, expected: unknown) => (
+  actual: jest.Mock
+) => {
+  expect(actual).toBe(aJestMock);
+  expect(actual).toBe(returning);
+
+  const nthCall = actual.mock.results[n - 1];
+
+  if (!nthCall) {
+    return `The mock was never called a ${ordinal(n)} time (calls: ${
+      actual.mock.calls.length
+    })`;
   }
 
-  if (lastCall.type === 'return' && deepEqual(lastCall.value, expected)) {
+  const isLastCall = n === actual.mock.calls.length;
+
+  if (nthCall.type !== 'return') {
+    return `Expected the ${ordinal(n)}${
+      isLastCall ? ' (and last)' : ''
+    } call of the error to return, but it threw instead`;
+  }
+
+  if (nthCall.type === 'return' && deepEqual(nthCall.value, expected)) {
     return true;
   } else {
     return [
-      'The last call of the mock did not return the expected value',
+      `The ${ordinal(n)}${
+        isLastCall ? ' (and last)' : ''
+      } call of the mock did not return the expected value`,
       expected,
-      lastCall.value,
+      nthCall.value,
     ];
   }
 };
-
-// nthReturningWith
 
 const areCallsEqual = (call1: unknown[], call2: unknown[]) =>
   call1.length === call2.length &&

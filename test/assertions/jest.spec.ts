@@ -13,6 +13,7 @@ import {
   returning,
   returningWith,
   lastReturningWith,
+  nthReturningWith,
 } from '../../src/assertions/jest';
 
 describe('jest assertions', () => {
@@ -635,7 +636,7 @@ describe('jest assertions', () => {
       expect(fn).not.toBe(lastReturningWith(e));
     });
 
-    it('should fail with the correct error for a not being returned from the final call of the mock', () => {
+    it('should fail with the correct error for e not being returned from the final call of the mock', () => {
       const e = aRandomPrimitive();
       const realReturnValue = aValueThatIs(aRandomPrimitive, { not: e });
       const fn = jest.fn();
@@ -645,7 +646,7 @@ describe('jest assertions', () => {
       expect(fn).toBe(
         failingTheAssertion(lastReturningWith(e), {
           withMessage:
-            'The last call of the mock did not return the expected value',
+            'The 2nd (and last) call of the mock did not return the expected value',
           withExpectedValue: e,
           withActualValue: realReturnValue,
         })
@@ -663,7 +664,7 @@ describe('jest assertions', () => {
       expect(fn).toBe(
         failingTheAssertion(lastReturningWith(e), {
           withMessage:
-            'Expected the last call of the error to return, but it threw instead',
+            'Expected the 2nd (and last) call of the error to return, but it threw instead',
         })
       );
     });
@@ -683,6 +684,158 @@ describe('jest assertions', () => {
       const fn = () => e;
       expect(fn).toBe(
         failingTheAssertion(lastReturningWith(e), {
+          withMessage: 'The given value is not a jest mock',
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(nthReturningWith(e))', () => {
+    it("should pass if a's nth call returns a value that equals e", () => {
+      const n = 2;
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue(e);
+      fn();
+      fn();
+      expect(fn).toBe(nthReturningWith(n, e));
+    });
+
+    it("should pass if a's nth call returns a value that deep equals e", () => {
+      const n = 2;
+      const e = { [Chance().word()]: aRandomPrimitive() };
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue({ ...e });
+      fn();
+      fn();
+      expect(fn).toBe(nthReturningWith(n, e));
+    });
+
+    it("should fail if a's nth call returned a value that does not equal e", () => {
+      const n = 2;
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue(aValueThatIs(aRandomPrimitive, { not: e }));
+      fn();
+      fn.mockReturnValue(e);
+      fn();
+      expect(fn).not.toBe(nthReturningWith(2, e));
+    });
+
+    it("should fail if a's nth call returned a value that does not equal e, even if e was returned before or after", () => {
+      const n = 2;
+      const e = aRandomPrimitive();
+      const fn = jest.fn().mockReturnValue(e);
+      fn();
+      fn.mockReturnValue(aValueThatIs(aRandomPrimitive, { not: e }));
+      fn();
+      fn.mockReturnValue(e);
+      fn();
+      expect(fn).not.toBe(nthReturningWith(n, e));
+    });
+
+    it("should fail if a's nth call threw", () => {
+      const n = 1;
+      const e = aRandomPrimitive();
+      const fn = jest.fn().mockImplementation(() => {
+        throw e;
+      });
+      callAndIgnoreError(fn);
+      expect(fn).not.toBe(nthReturningWith(n, e));
+    });
+
+    it("should fail if n is out of range of a's invocations count", () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn().mockReturnValue(e);
+      fn();
+      fn();
+      expect(fn).not.toBe(nthReturningWith(3, e));
+    });
+
+    it('should fail if a was never called', () => {
+      const n = Chance().integer({ min: 0 });
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      expect(fn).not.toBe(nthReturningWith(n, e));
+    });
+
+    it('should fail if a is not a jest mock', () => {
+      const n = Chance().integer({ min: 0 });
+      const e = aRandomPrimitive();
+      const fn = () => e;
+      fn();
+      expect(fn).not.toBe(nthReturningWith(n, e));
+    });
+
+    it('should fail with the correct error for e not being returned from the nth call of the mock', () => {
+      const n = 2;
+      const e = aRandomPrimitive();
+      const realReturnValue = aValueThatIs(aRandomPrimitive, { not: e });
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue(realReturnValue);
+      fn();
+      fn();
+      expect(fn).toBe(
+        failingTheAssertion(nthReturningWith(n, e), {
+          withMessage:
+            'The 2nd call of the mock did not return the expected value',
+          withExpectedValue: e,
+          withActualValue: realReturnValue,
+        })
+      );
+    });
+
+    it('should fail with the correct error for a throwing on its nth invocation', () => {
+      const n = 2;
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      fn();
+      fn.mockImplementation(() => {
+        throw new Error();
+      });
+      callAndIgnoreError(fn);
+      callAndIgnoreError(fn);
+      expect(fn).toBe(
+        failingTheAssertion(nthReturningWith(n, e), {
+          withMessage:
+            'Expected the 2nd call of the error to return, but it threw instead',
+        })
+      );
+    });
+
+    it("should fail with the correct error for n being out of range of a's invocations", () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn().mockReturnValue(e);
+      fn();
+      fn();
+      expect(fn).toBe(
+        failingTheAssertion(nthReturningWith(3, e), {
+          withMessage: `The mock was never called a 3rd time (calls: 2)`,
+        })
+      );
+    });
+
+    it('should fail with the correct error for a never being called', () => {
+      const n = Chance().integer({ min: 0 });
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      expect(fn).toBe(
+        failingTheAssertion(nthReturningWith(n, e), {
+          withMessage: 'The mock was never called at all',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a not being a jest mock', () => {
+      const n = Chance().integer({ min: 0 });
+      const e = aRandomPrimitive();
+      const fn = () => e;
+      expect(fn).toBe(
+        failingTheAssertion(nthReturningWith(n, e), {
           withMessage: 'The given value is not a jest mock',
         })
       );
