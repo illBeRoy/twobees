@@ -4,6 +4,15 @@
   "description": "assertion with a buzz",
   "main": "dist/src/index.js",
   "author": "Roy Sommer <roy@sommer.co.il>",
+  "keywords": [
+    "test",
+    "assertions",
+    "typescript",
+    "jest",
+    "mocha",
+    "jasmine",
+    "chai"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/illBeRoy/twobees"
