@@ -118,7 +118,24 @@ export const returningWith = (expected: unknown) => (actual: jest.Mock) => {
   }
 };
 
-// lastReturningWith
+export const lastReturningWith = (expected: unknown) => (actual: jest.Mock) => {
+  expect(actual).toBe(aJestMock);
+  expect(actual).toBe(returning);
+  const lastCall = actual.mock.results[actual.mock.results.length - 1];
+  if (lastCall.type !== 'return') {
+    return 'Expected the last call of the error to return, but it threw instead';
+  }
+
+  if (lastCall.type === 'return' && deepEqual(lastCall.value, expected)) {
+    return true;
+  } else {
+    return [
+      'The last call of the mock did not return the expected value',
+      expected,
+      lastCall.value,
+    ];
+  }
+};
 
 // nthReturningWith
 

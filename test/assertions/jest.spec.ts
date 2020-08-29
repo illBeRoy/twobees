@@ -12,6 +12,7 @@ import {
   nthCalledWith,
   returning,
   returningWith,
+  lastReturningWith,
 } from '../../src/assertions/jest';
 
 describe('jest assertions', () => {
@@ -569,6 +570,119 @@ describe('jest assertions', () => {
       const fn = () => e;
       expect(fn).toBe(
         failingTheAssertion(returningWith(e), {
+          withMessage: 'The given value is not a jest mock',
+        })
+      );
+    });
+  });
+
+  describe('expect(a).toBe(lastReturningWith(e))', () => {
+    it("should pass if a's final call returns a value that equals e", () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue(e);
+      fn();
+      expect(fn).toBe(lastReturningWith(e));
+    });
+
+    it("should pass if a's final call returns a value that deep equals e", () => {
+      const e = { [Chance().string()]: aRandomPrimitive() };
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue({ ...e });
+      fn();
+      expect(fn).toBe(lastReturningWith(e));
+    });
+
+    it("should fail if a's final call returned a value that does not equal e", () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue(aValueThatIs(aRandomPrimitive, { not: e }));
+      fn();
+      expect(fn).not.toBe(lastReturningWith(e));
+    });
+
+    it("should fail if a's final call returned a value that does not equal e, even if e was returned before", () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn().mockReturnValue(e);
+      fn();
+      fn.mockReturnValue(aValueThatIs(aRandomPrimitive, { not: e }));
+      fn();
+      expect(fn).not.toBe(lastReturningWith(e));
+    });
+
+    it("should fail if a's final call threw e", () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn().mockImplementation(() => {
+        throw e;
+      });
+      callAndIgnoreError(fn);
+      expect(fn).not.toBe(lastReturningWith(e));
+    });
+
+    it('should fail if a was never called', () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      expect(fn).not.toBe(lastReturningWith(e));
+    });
+
+    it('should fail if a is not a jest mock', () => {
+      const e = aRandomPrimitive();
+      const fn = () => e;
+      fn();
+      expect(fn).not.toBe(lastReturningWith(e));
+    });
+
+    it('should fail with the correct error for a not being returned from the final call of the mock', () => {
+      const e = aRandomPrimitive();
+      const realReturnValue = aValueThatIs(aRandomPrimitive, { not: e });
+      const fn = jest.fn();
+      fn();
+      fn.mockReturnValue(realReturnValue);
+      fn();
+      expect(fn).toBe(
+        failingTheAssertion(lastReturningWith(e), {
+          withMessage:
+            'The last call of the mock did not return the expected value',
+          withExpectedValue: e,
+          withActualValue: realReturnValue,
+        })
+      );
+    });
+
+    it('should fail with the correct error for a throwing on its last invocation', () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      fn();
+      fn.mockImplementation(() => {
+        throw new Error();
+      });
+      callAndIgnoreError(fn);
+      expect(fn).toBe(
+        failingTheAssertion(lastReturningWith(e), {
+          withMessage:
+            'Expected the last call of the error to return, but it threw instead',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a never being called', () => {
+      const e = aRandomPrimitive();
+      const fn = jest.fn();
+      expect(fn).toBe(
+        failingTheAssertion(lastReturningWith(e), {
+          withMessage: 'The mock was never called at all',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a not being a jest mock', () => {
+      const e = aRandomPrimitive();
+      const fn = () => e;
+      expect(fn).toBe(
+        failingTheAssertion(lastReturningWith(e), {
           withMessage: 'The given value is not a jest mock',
         })
       );
