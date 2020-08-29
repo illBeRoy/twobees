@@ -86,7 +86,23 @@ export const nthCalledWith = <TArgs extends unknown[]>(
   }
 };
 
-// returning
+export const returning = (actual: jest.Mock) => {
+  expect(actual).toBe(aJestMock);
+
+  if (actual.mock.calls.length === 0) {
+    return 'The mock was never called at all';
+  }
+
+  const hasReturnedOnce = actual.mock.results.some(
+    (result) => result.type === 'return'
+  );
+
+  if (hasReturnedOnce) {
+    return true;
+  } else {
+    return 'The mock never finished running successfully';
+  }
+};
 
 // returningWith
 

@@ -2,6 +2,7 @@ import { Chance } from 'chance';
 import { expect } from '../../src';
 import { failingTheAssertion } from '../utils/assertions';
 import { aRandomPrimitive } from '../utils/values';
+import { callAndIgnoreError } from '../utils/error';
 import {
   calledWith,
   called,
@@ -9,6 +10,7 @@ import {
   calledTimes,
   lastCalledWith,
   nthCalledWith,
+  returning,
 } from '../../src/assertions/jest';
 
 describe('jest assertions', () => {
@@ -412,6 +414,72 @@ describe('jest assertions', () => {
           nthCalledWith(Chance().integer({ min: 1 }), ...args),
           { withMessage: 'The given value is not a jest mock' }
         )
+      );
+    });
+  });
+
+  describe('expect(a).toBe(returning)', () => {
+    it('should pass if a returned', () => {
+      const fn = jest.fn().mockReturnValue(aRandomPrimitive());
+      fn();
+      expect(fn).toBe(returning);
+    });
+
+    it('should pass if a returned at least once, even if it also thrown', () => {
+      const fn = jest.fn().mockReturnValue(aRandomPrimitive());
+      fn();
+      fn.mockImplementation(() => {
+        throw new Error();
+      });
+      callAndIgnoreError(fn);
+      expect(fn).toBe(returning);
+    });
+
+    it('should fail if a did not return', () => {
+      const fn = jest.fn().mockImplementation(() => {
+        throw new Error();
+      });
+      callAndIgnoreError(fn);
+      expect(fn).not.toBe(returning);
+    });
+
+    it('should fail if a was never called', () => {
+      const fn = jest.fn();
+      expect(fn).not.toBe(returning);
+    });
+
+    it('should fail if a is not a jest mock', () => {
+      const fn = () => void 0;
+      expect(fn).not.toBe(returning);
+    });
+
+    it('should fail with correct error for a not returning even once', () => {
+      const fn = jest.fn().mockImplementation(() => {
+        throw new Error();
+      });
+      callAndIgnoreError(fn);
+      expect(fn).toBe(
+        failingTheAssertion(returning, {
+          withMessage: 'The mock never finished running successfully',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a never being called', () => {
+      const fn = jest.fn();
+      expect(fn).toBe(
+        failingTheAssertion(returning, {
+          withMessage: 'The mock was never called at all',
+        })
+      );
+    });
+
+    it('should fail with the correct error for a not being a jest mock', () => {
+      const fn = () => void 0;
+      expect(fn).toBe(
+        failingTheAssertion(returning, {
+          withMessage: 'The given value is not a jest mock',
+        })
       );
     });
   });
