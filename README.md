@@ -18,6 +18,7 @@ expect(foo).toBe(sameAs(5));
 
 ### Features
 * 🎈 **Simple** - only one expectation method - *toBe*. in exchange for all the magic methods, every boolean function is an assertion!
+* 🏁 **Comprehensive** - contains a rich library of assertion functions and even optional ootb support for jest!
 * 🕹 **Hackable** - easily write your own special assertions for your code! extend and compose existing assertions!
 * 📠 **Type Safe** - we leverage typescript to find type errors before you even hit that run button!
 
