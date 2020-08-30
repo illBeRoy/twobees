@@ -7,8 +7,12 @@ assertions with a <i>buzz</i> 🐝
 </p>
 
 <p align="center">
-<img src="https://img.shields.io/github/workflow/status/illBeRoy/twobees/Tests%20CI/master?style=flat-square" />
-<img src="https://img.shields.io/npm/v/twobees?style=flat-square" />
+<a href="https://github.com/illBeRoy/twobees/actions?query=workflow%3A%22Tests+CI%22+branch%3Amaster" target="_blank">
+  <img src="https://img.shields.io/github/workflow/status/illBeRoy/twobees/Tests%20CI/master?style=flat-square" />
+</a>
+<a href="https://npmjs.com/package/twobees" target="_blank">
+  <img src="https://img.shields.io/npm/v/twobees?style=flat-square" />
+</a>
 </p>
 
 ```ts
