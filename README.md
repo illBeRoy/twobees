@@ -6,6 +6,11 @@
 assertions with a <i>buzz</i> 🐝
 </p>
 
+<p align="center">
+<img src="https://img.shields.io/github/workflow/status/illBeRoy/twobees/Tests%20CI/master?style=flat-square" />
+<img src="https://img.shields.io/npm/v/twobees?style=flat-square" />
+</p>
+
 ```ts
 // take this simple function
 const sameAs = <T>(expected: T) => (actual: T) => actual === expected;
