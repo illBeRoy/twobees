@@ -12,7 +12,7 @@ const rewriteAssertionsFromDocs = () => {
     `## Basic\n` +
     `${dedent(basicDocs.introduction)}\n\n` +
     Object.keys(basicDocs.content)
-      .map((assertion) => `* [\`${assertion}\`](#${assertion})`)
+      .map((assertion) => `* [\`${assertion}\`](#${assertion.toLowerCase()})`)
       .join('\n') +
     `\n\n` +
     Object.entries(basicDocs.content)
@@ -28,11 +28,11 @@ const rewriteAssertionsFromDocs = () => {
       .join('\n\n') +
     `\n\n` +
     `## Jest\n` +
-    `\n\n` +
-    Object.keys(jestDocs.content)
-      .map((assertion) => `* [\`${assertion}\`](#${assertion})`)
-      .join('\n') +
     `${dedent(jestDocs.introduction)}\n\n` +
+    Object.keys(jestDocs.content)
+      .map((assertion) => `* [\`${assertion}\`](#${assertion.toLowerCase()})`)
+      .join('\n') +
+    `\n\n` +
     Object.entries(jestDocs.content)
       .map(
         ([title, content]) =>

@@ -13,32 +13,32 @@ them from there:
 import { sameAs, equal, ... } from 'twobees';
 ```
 
-* [`sameAs`](#sameAs)
+* [`sameAs`](#sameas)
 * [`equal`](#equal)
-* [`withLength`](#withLength)
-* [`withProperty`](#withProperty)
+* [`withLength`](#withlength)
+* [`withProperty`](#withproperty)
 * [`between`](#between)
 * [`defined`](#defined)
 * [`falsy`](#falsy)
 * [`truthy`](#truthy)
-* [`greaterThan`](#greaterThan)
-* [`greaterThanEqual`](#greaterThanEqual)
-* [`lessThan`](#lessThan)
-* [`lessThanEqual`](#lessThanEqual)
-* [`instanceOf`](#instanceOf)
-* [`aNull`](#aNull)
-* [`anUndefined`](#anUndefined)
-* [`aNaN`](#aNaN)
-* [`havingSameElementsAs`](#havingSameElementsAs)
-* [`aSupersetOf`](#aSupersetOf)
-* [`aSubsetOf`](#aSubsetOf)
+* [`greaterThan`](#greaterthan)
+* [`greaterThanEqual`](#greaterthanequal)
+* [`lessThan`](#lessthan)
+* [`lessThanEqual`](#lessthanequal)
+* [`instanceOf`](#instanceof)
+* [`aNull`](#anull)
+* [`anUndefined`](#anundefined)
+* [`aNaN`](#anan)
+* [`havingSameElementsAs`](#havingsameelementsas)
+* [`aSupersetOf`](#asupersetof)
+* [`aSubsetOf`](#asubsetof)
 * [`matching`](#matching)
 * [`throwing`](#throwing)
-* [`throwingWith`](#throwingWith)
+* [`throwingWith`](#throwingwith)
 * [`resolved`](#resolved)
-* [`resolvedWith`](#resolvedWith)
+* [`resolvedWith`](#resolvedwith)
 * [`rejected`](#rejected)
-* [`rejectedWith`](#rejectedWith)
+* [`rejectedWith`](#rejectedwith)
 
 ### `sameAs`
 Asserts strict equality over two values, using the `===` operator.
@@ -331,18 +331,7 @@ await expect(Promise.reject('Whoops')).toBe(rejectedWith(/^Who+ps$/));
 ```
 
 ## Jest
-
-
-* [`aJestMock`](#aJestMock)
-* [`called`](#called)
-* [`calledTimes`](#calledTimes)
-* [`calledWith`](#calledWith)
-* [`lastCalledWith`](#lastCalledWith)
-* [`nthCalledWith`](#nthCalledWith)
-* [`returning`](#returning)
-* [`returningWith`](#returningWith)
-* [`lastReturningWith`](#lastReturningWith)
-* [`nthReturningWith`](#nthReturningWith)If you are using Jest as your test runner, it is likely that you are using its features as well.
+If you are using Jest as your test runner, it is likely that you are using its features as well.
 
 **twobees** comes with a set of jest-specific assertion functions. That said, they are not
 included in the main bundle, and you have to import them from within the jest entry point:
@@ -351,6 +340,17 @@ included in the main bundle, and you have to import them from within the jest en
 import { expect } from 'twobees';
 import { aJestMock, calledWith, returningWith, ... } from 'twobees/assertions/jest';
 ```
+
+* [`aJestMock`](#ajestmock)
+* [`called`](#called)
+* [`calledTimes`](#calledtimes)
+* [`calledWith`](#calledwith)
+* [`lastCalledWith`](#lastcalledwith)
+* [`nthCalledWith`](#nthcalledwith)
+* [`returning`](#returning)
+* [`returningWith`](#returningwith)
+* [`lastReturningWith`](#lastreturningwith)
+* [`nthReturningWith`](#nthreturningwith)
 
 ### `aJestMock`
 Asserts that a given value is a jest mock (for example, `jest.fn()`).
