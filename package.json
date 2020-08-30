@@ -1,6 +1,6 @@
 {
   "name": "twobees",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "assertion with a buzz",
   "main": "dist/src/index.js",
   "author": "Roy Sommer <roy@sommer.co.il>",
