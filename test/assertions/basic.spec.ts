@@ -1273,7 +1273,7 @@ describe('basic assertions', () => {
     });
   });
 
-  describe.only('expect(a).toBe(eventually(assertionOverA))', () => {
+  describe('expect(a).toBe(eventually(assertionOverA))', () => {
     it('should pass if the assertion was fulfilled within 1500ms', async () => {
       const actual = { pass: false };
       setTimeout(() => (actual.pass = true), 1450);
