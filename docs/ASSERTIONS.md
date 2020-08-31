@@ -35,6 +35,7 @@ import { sameAs, equal, ... } from 'twobees';
 * [`matching`](#matching)
 * [`throwing`](#throwing)
 * [`throwingWith`](#throwingwith)
+* [`eventually`](#eventually)
 * [`resolved`](#resolved)
 * [`resolvedWith`](#resolvedwith)
 * [`rejected`](#rejected)
@@ -272,6 +273,29 @@ expect(() => { throw new AssertionError('Whoops') }).toBe(throwingWith('Whoops')
 expect(() => { throw new AssertionError('Whoops') }).toBe(throwingWith(/^Who+ps$/));
 expect(() => { throw 'Whoops'; }).toBe(throwingWith('Whoops'));
 expect(() => { throw 'Whoops'; }).toBe(throwingWith(/^Who+ps$/));
+```
+
+### `eventually`
+Receives an inner assertion function and retries it upon the value until it passes.
+
+This is useful in cases that you have an async operation that should affect the observed object at some
+point in the near future.
+
+If the assertion does not pass within the expected period of time, the assertion rejects with the latest
+error that was thrown.
+
+Optionally, you can configure the assertion using two options:
+* **timeout**: how long until the expectation fails (default: 1500ms)
+* **interval**: how long to wait between retries (default: 50ms)
+
+**Example:**
+```js
+const counter = { count: 0 };
+setTimeout(() => counter.count += 1, 500);
+
+await expect(counter).toBe(eventually(withProperty('count', 1)));
+await expect(counter).toBe(eventually(withProperty('count', 1), { timeout: 500 }));
+await expect(counter).toBe(eventually(withProperty('count', 1), { interval: 10 }));
 ```
 
 ### `resolved`

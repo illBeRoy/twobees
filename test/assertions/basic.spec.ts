@@ -26,6 +26,7 @@ import {
   matching,
   throwing,
   throwingWith,
+  eventually,
   rejected,
   rejectedWith,
   resolved,
@@ -1267,6 +1268,104 @@ describe('basic assertions', () => {
         failingTheAssertion(throwingWith(SomeErrorClass), {
           withMessage:
             'The thrown value was not an Error instance nor a string',
+        })
+      );
+    });
+  });
+
+  describe.only('expect(a).toBe(eventually(assertionOverA))', () => {
+    it('should pass if the assertion was fulfilled within 1500ms', async () => {
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), 1450);
+      await expect(actual).toBe(eventually(withProperty('pass', true)));
+    });
+
+    it('should pass if the assertion was fulfilled within the value set in <timeout>', async () => {
+      const timeout = Chance().integer({ min: 1600, max: 2500 });
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), timeout - 100);
+      await expect(actual).toBe(
+        eventually(withProperty('pass', true), { timeout })
+      );
+    });
+
+    it('should poll in intervals of 50ms by default', async () => {
+      const actual = {
+        _pass: false,
+        _checks: 0,
+        get pass() {
+          this._checks += 1;
+          return this._pass;
+        },
+      };
+
+      setTimeout(() => (actual._pass = true), 1450);
+      await expect(actual).toBe(eventually(withProperty('pass', true)));
+      expect(actual._checks).toBe(between(56, 60)); // every "withProperty" should access the value twice
+    });
+
+    it('should poll in intervals defined by <interval>, if passed', async () => {
+      const actual = {
+        _pass: false,
+        _checks: 0,
+        get pass() {
+          this._checks += 1;
+          return this._pass;
+        },
+      };
+
+      setTimeout(() => (actual._pass = true), 1350);
+      await expect(actual).toBe(
+        eventually(withProperty('pass', true), { interval: 100 })
+      );
+      expect(actual._checks).toBe(between(28, 30)); // every "withProperty" should access the value twice
+    });
+
+    it('should fail if the assertion was not fulfilled within 1500ms', async () => {
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), 1550);
+      await expect(actual).not.toBe(eventually(withProperty('pass', true)));
+    });
+
+    it('should fail if the assertion was not fulfilled within the custom <timeout> value', async () => {
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), 400);
+      await expect(actual).not.toBe(
+        eventually(withProperty('pass', true), { timeout: 300 })
+      );
+    });
+
+    it('should fail with the correct error for the assertion not being fulfilled within the default 1500ms', async () => {
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), 1550);
+      await expect(actual).toBe(
+        failingTheAssertion(eventually(withProperty('pass', true)), {
+          withMessage: `Expectation was not fulfilled within 1500ms`,
+        })
+      );
+    });
+
+    it('should fail with the correct error for the assertion not being fulfilled within the custom <timeout> parameter', async () => {
+      const timeout = Chance().integer({ min: 1600, max: 2500 });
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), timeout + 50);
+      await expect(actual).toBe(
+        failingTheAssertion(
+          eventually(withProperty('pass', true), { timeout }),
+          {
+            withMessage: `Expectation was not fulfilled within ${timeout}ms`,
+          }
+        )
+      );
+    });
+
+    it('should fail with the last error that was thrown by the inner assertion', async () => {
+      const timeout = Chance().integer({ min: 1600, max: 2500 });
+      const actual = { pass: false };
+      setTimeout(() => (actual.pass = true), timeout + 50);
+      await expect(actual).toBe(
+        failingTheAssertion(eventually(withProperty('pass', true)), {
+          withMessage: `The object contains a value other than expected at property "pass"`,
         })
       );
     });

@@ -1,6 +1,7 @@
 import deepEqual from 'fast-deep-equal';
 import { isPromise } from '../promise';
-import { expect } from '../expect';
+import { expect, AssertionFn } from '../expect';
+import indentString from 'indent-string';
 
 export const sameAs = <T>(expected: T) => (actual: T) =>
   actual === expected || [
@@ -334,6 +335,30 @@ export const throwingWith = (
   }
 
   return 'The thrown value was not an Error instance nor a string';
+};
+
+export const eventually = <T>(
+  assertion: AssertionFn<T>,
+  { timeout = 1500, interval = 50 } = {}
+) => async (actual: T) => {
+  const startTime = Date.now();
+  let lastError: any;
+  while (Date.now() < startTime + timeout) {
+    try {
+      await expect(actual).toBe(assertion);
+      return true;
+    } catch (err) {
+      lastError = err;
+      await new Promise((res) => setTimeout(res, interval));
+    }
+  }
+
+  const lastErrorMessage =
+    lastError && 'message' in lastError ? lastError.message : lastError;
+
+  return `Expectation was not fulfilled within ${timeout}ms${
+    lastErrorMessage ? `:\n${indentString(lastErrorMessage, 2)}` : ''
+  }`;
 };
 
 export const resolved = async (actual: Promise<unknown>) => {
