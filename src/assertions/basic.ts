@@ -252,7 +252,7 @@ export const throwing = (actual: () => unknown) => {
 };
 
 export const throwingWith = (
-  expected: Error | (new (...args: unknown[]) => Error) | RegExp | string
+  expected: Error | (new (...args: unknown[]) => unknown) | RegExp | string
 ) => (actual: () => unknown) => {
   let error;
   try {
