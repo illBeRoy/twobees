@@ -43,7 +43,7 @@
     "dedent": "^0.7.0",
     "eslint-config-typescript-prettier": "illberoy/eslint-typescript-prettier",
     "jest": "^26.4.0",
-    "release-it": "^13.7.0",
+    "release-it": "^15.4.0",
     "ts-jest": "^26.2.0",
     "ts-node": "^9.0.0",
     "typescript": "^3.9.7"
